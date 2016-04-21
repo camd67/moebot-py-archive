@@ -1,0 +1,2 @@
+# MoeBot
+MoeBot for Discord
