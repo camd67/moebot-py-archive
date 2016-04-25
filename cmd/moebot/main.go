@@ -43,7 +43,6 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("bot up and running!")
 
 	fmt.Printf("bot is running, press CTRL+C to exit")
 	<-make(chan struct{})
