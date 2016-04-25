@@ -87,3 +87,9 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+vendor
+
+### Sass ###
+.sass-cache/
+*.css.map
