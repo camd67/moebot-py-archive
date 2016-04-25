@@ -88,8 +88,9 @@ _testmain.go
 *.test
 *.prof
 
-vendor
 
 ### Sass ###
 .sass-cache/
 *.css.map
+
+.env
