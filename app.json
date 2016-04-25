@@ -1,0 +1,14 @@
+{
+  "name": "moebot",
+  "description": "MoeBot for Discord",
+  "keywords": [
+    "discord",
+    "go",
+    "chat",
+    "bot"
+  ],
+  "image": "heroku/go:1.6",
+  "mount_dir": "src/github.com/CamD67/moebot",
+  "website": "http://github.com/CamD67/MoeBot",
+  "repository": "http://github.com/CamD67/MoeBot"
+}
