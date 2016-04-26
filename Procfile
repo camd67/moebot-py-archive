@@ -1,2 +1,2 @@
-worker: moebot
 web: moebot-site
+worker: moebot
