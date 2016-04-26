@@ -55,6 +55,8 @@ func parseMessage(session *discordgo.Session, message *discordgo.MessageCreate) 
 	content := strings.ToLower(message.Content)
 	if strings.HasPrefix(content, "hi moebot") || strings.HasPrefix(content, "hello moebot") {
 		session.ChannelMessageSend(message.ChannelID, "Hello "+message.Author.Username+"!")
+	} else if strings.HasPrefix(content, "moebot what's moe") || strings.HasPrefix(content, "moebot what is moe") {
+		session.ChannelMessageSend(message.ChannelID, "Check this out: https://vimeo.com/70285271")
 	}
 }
 
