@@ -12,6 +12,9 @@ import (
 )
 
 func main() {
+
+    discordSetup()
+
 	port := os.Getenv("PORT")
 
 	if port == "" {
@@ -28,8 +31,10 @@ func main() {
 	})
 
 	router.Run(":" + port)
-    //config or args[0] this
-	discord, err := discordgo.New("")
+}
+
+func discordSetup()  {
+	discord, err := discordgo.New(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -40,10 +45,6 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	fmt.Printf("bot is running, press CTRL+C to exit")
-	<-make(chan struct{})
-	return
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
