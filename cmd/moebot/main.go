@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	fmt.Println("MoeBot is up and running!")
 	handleExit()
 }
