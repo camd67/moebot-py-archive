@@ -11,8 +11,9 @@ import (
 )
 
 func init() {
-	config.DiscordToken = os.Getenv("DISCORD_TOKEN")
-	config.Debug = os.Getenv("STATE") == "debug"
+	config.DiscordToken = os.Getenv("DISCORD_KEY")
+	//config.Debug = os.Getenv("STATE") == "debug"
+    config.Debug = true
 }
 
 func main() {
