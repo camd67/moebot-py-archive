@@ -15,7 +15,7 @@ import (
 func init() {
 	config.DiscordToken = os.Getenv("DISCORD_KEY")
 	//config.Debug = os.Getenv("STATE") == "debug"
-    config.Debug = true
+	config.Debug = true
 }
 
 func main() {
@@ -69,8 +69,11 @@ func topAnimeMessageHandler(message string) string {
 	tokens := strings.Split(message, " ")
 	if 2 < len(tokens) {
 		numAnime, err := strconv.Atoi(tokens[2]) //the third token should be the number of anime to show
+		if 1 > numAnime || 10 < numAnime {
+			return "Can only print 1-10 anime titles"
+		}
 		if nil == err {
-			return "The top " + string(numAnime) + " according to myanimelist.net are:\n" + topanime.GetTopAnime(numAnime)
+			return "The top " + strconv.Itoa(numAnime) + " according to myanimelist.net are:\n" + topanime.GetTopAnime(numAnime)
 		}
 		return "Could not parse int"
 	}
