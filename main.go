@@ -81,11 +81,12 @@ func parseMessage(session *discordgo.Session, message *discordgo.MessageCreate) 
 		session.ChannelMessageSend(message.ChannelID, topAnimeMessageHandler(content))
 	} else if strings.HasPrefix(content, "moe random") {
 		//session.ChannelMessageSend(message.ChannelID, randomMoe())
-		randomMoe()
+		//randomMoe()
 	}
 }
 
 func randomMoe() string {
+	// Need to login first!
 	response, err := http.Get("http://reddit.com/r/awwnime/hot")
 	if err != nil {
 		log.Println("!! ERROR !! couldn't connect to reddit/awwnime")
