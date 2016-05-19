@@ -1,3 +1,7 @@
+# Note
+This is the go version of moebot. While it does work, the new version is being written in Python.
+This branch and the code within it will no longer be maintained nor supported.
+
 # MoeBot
 A new version of MoeBot. This time using Go, and deployed on a webserver for easy and more varied access.
 
