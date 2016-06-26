@@ -8,16 +8,16 @@ client = discord.Client()
 admins = ["84394456941359104", "172495826264915968"]
 
 # Client events
-@asyncio.coroutine
 @client.event
+@asyncio.coroutine
 def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
     print('------')
 
-@asyncio.coroutine
 @client.event
+@asyncio.coroutine
 def on_message(message):
     if comm_processor.isCommand(message.content) and message.author.id != client.user.id:
         com = comm_processor.getCommandName(message.content)
