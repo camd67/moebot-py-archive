@@ -24,7 +24,7 @@ def on_message(message):
         if com == "count":
             counter = 0
             tmp = yield from client.send_message(message.channel, 'Calculating messages...')
-            async for log in client.logs_from(message.channel, limit=100):
+            for log in client.logs_from(message.channel, limit=100):
                 if log.author == message.author:
                     counter += 1
             yield from client.edit_message(tmp, 'You have {} messages.'.format(counter))
