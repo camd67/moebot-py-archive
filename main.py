@@ -1,21 +1,27 @@
 import configparser
 from bot import moebot
 import sys
+from os import path
 import datetime
+import logging
+import logging.config
 
 def readConfig():
     output = {}
     config = configparser.ConfigParser()
-    config.read("./config/bot.ini")
+    filepath = path.realpath("config/bot.ini")
+    config.read(filepath)
     for key in config["settings"]:
         output[key] = config["settings"][key]
     return output
 
-config = readConfig()
 
 if __name__ == '__main__':
-    #sys.stdout = open(config["output"], "a+")
-    print("=======================================")
-    print(" BEGIN LOG FILE FOR MOEBOT ON : {:%Y-%m-%d %H:%M:%S}'".format(datetime.datetime.now()))
+    logPath = path.realpath("config/log.conf")
+    logging.config.fileConfig(logPath)
+    log = logging.getLogger("root")
+    config = readConfig()
+    log.debug("=======================================")
+    log.debug(" BEGIN LOG FILE FOR MOEBOT")
     moebot.setup()
     moebot.run(config["bottoken"])
