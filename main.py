@@ -24,4 +24,10 @@ if __name__ == '__main__':
     log.debug("=======================================")
     log.debug(" BEGIN LOG FILE FOR MOEBOT")
     moebot.setup()
-    moebot.run(config["bottoken"])
+    try:
+        moebot.run(config["bottoken"], config["useragent"])
+    except KeyboardInterrupt as e:
+        moebot.logout()
+    finally:
+        if moebot.client.is_logged_in:
+            moebot.logout()
