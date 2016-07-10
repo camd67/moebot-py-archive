@@ -29,6 +29,7 @@ async def on_message(message):
         logger.debug("Recieved command: " + com)
         args = comm_processor.getArguments(message.content)
         if com in commands:
+            await client.send_typing(message.channel)
             await commands[com](message, args);
         else:
             logger.debug("could not find command: "+com)
@@ -39,17 +40,28 @@ async def on_message(message):
 # both of these should figure out a way to store results, then grab a random one from there
 async def commRandomDan(message, args):
     numSubmissions = 20
-    posts = urllib.request.urlopen("https://danbooru.donmai.us/posts.json?tags=rating:s+"+args[0]).read()
+    posts = None
+    try:
+        posts = urllib.request.urlopen("https://danbooru.donmai.us/posts.json?tags=rating:s+"+args[0]).read()
+    except Exception as e:
+        logging.exception("Failed to download all danbooru posts")
+        await sendErrorMessage(message, e)
+        return
     # trim off the brackets
     posts = posts[:-1]
     posts = posts[1:]
     index = random.randrange(numSubmissions)
-    print(posts)
     selected = posts.split(',')[index]
     danbooruUrl = "https://danbooru.donmai.us"
     logger.debug("Downliading image from: " + danbooruUrl +selected.file_url)
-    image = urllib.request.urlopen(danbooruUrl + selected.file_url)
-    await client.send_file(message.channel, io.BytesIO(image.read()), filename="danbooru.png")
+    image = None
+    try:
+        image = urllib.request.urlopen(danbooruUrl + selected.file_url)
+        await client.send_file(message.channel, io.BytesIO(image.read()), filename="danbooru.png")
+    except Exception as e:
+        logging.exception("Failed to download danbooru image")
+        await sendErrorMessage(message, e)
+        return
 
 async def commRandomMoe(message, args):
     numSubmissions = 100
@@ -58,9 +70,17 @@ async def commRandomMoe(message, args):
     currIndex = 0
     for submission in submissions:
         if currIndex == index:
+            if ".gif" in submission.url:
+                index += 1
+                continue
             logger.debug("Downloading image from " + submission.url)
-            response = urllib.request.urlopen(submission.url)
-            await client.send_file(message.channel, io.BytesIO(response.read()), filename="moe.png", content=submission.title)
+            try:
+                response = urllib.request.urlopen(submission.url)
+                await client.send_file(message.channel, io.BytesIO(response.read()), filename="moe.png", content=submission.title)
+            except Exception as e:
+                logging.exception("Failed to download reddit submission")
+                await sendErrorMessage(message, e)
+                return
             break
         currIndex+= 1
 
@@ -97,10 +117,14 @@ async def commLogout(message, args):
     if message.author.id in admins:
         await client.send_message(message.channel, 'Goodbye everyone!')
         logger.debug("Logging out...")
-        await logout();
+        await logout()
 #
 #   End commands
 #
+
+async def sendErrorMessage(message, e):
+    await client.send_message(message.channel, "Something went wrong... <@%s> something went wrong! :sob:" % admins[0])
+    # would be good to send the exception over to Salt in a private message
 
 async def logout():
     await client.logout()
@@ -115,8 +139,8 @@ def setup():
     commands["sleep"] = commSleep
     commands["count"] = commCount
     commands["random"] = commRandomMoe
-    #commands["db"] = commRandomDan
-    #commands["danbooru"] = commRandomDan
+    commands["db"] = commRandomDan
+    commands["danbooru"] = commRandomDan
     logger.debug("Added the following commands:")
     for c in commands:
         logger.debug(c)
