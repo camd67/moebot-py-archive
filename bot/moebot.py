@@ -70,7 +70,7 @@ async def commRandomMoe(message, args):
     currIndex = 0
     for submission in submissions:
         if currIndex == index:
-            if ".gif" in submission.url:
+            if ".gif" in submission.url or "i.redd.it" in submission.url:
                 index += 1
                 continue
             logger.debug("Downloading image from " + submission.url)
