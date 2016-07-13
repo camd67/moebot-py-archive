@@ -1,3 +1,6 @@
+# db related items
+moedata.*
+
 config/bot.ini
 log
 
