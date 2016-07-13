@@ -6,6 +6,7 @@ import random
 import logging
 import urllib
 import io
+import json
 
 client = discord.Client()
 admins = ["84394456941359104", "172495826264915968"]
@@ -39,24 +40,29 @@ async def on_message(message):
 
 # both of these should figure out a way to store results, then grab a random one from there
 async def commRandomDan(message, args):
-    numSubmissions = 20
+    numSubmissions = 50
+    danbooruUrl = "https://danbooru.donmai.us"
     posts = None
+    fullUrl = "{}/posts.json?limit={}&tags=rating:s+{}".format(danbooruUrl, numSubmissions, args[0])
+    logger.debug("Downloading data from {}".format(fullUrl))
     try:
-        posts = urllib.request.urlopen("https://danbooru.donmai.us/posts.json?tags=rating:s+"+args[0]).read()
+        posts = urllib.request.urlopen(fullUrl).read()
     except Exception as e:
         logging.exception("Failed to download all danbooru posts")
         await sendErrorMessage(message, e)
         return
-    # trim off the brackets
-    posts = posts[:-1]
-    posts = posts[1:]
+    # danbooru api returns an empty array on tag error...
+    if len(posts) < 5:
+        logger.debug("No results from: {}".format(fullUrl))
+        await client.send_message(message.channel, "I don't recognize that tag...")
+        return
     index = random.randrange(numSubmissions)
-    selected = posts.split(',')[index]
-    danbooruUrl = "https://danbooru.donmai.us"
-    logger.debug("Downliading image from: " + danbooruUrl +selected.file_url)
+    decodedJson = json.loads(posts.decode(encoding="UTF-8"))
+    selected = decodedJson[index]
+    logger.debug("Downloading image from: {}{}".format(danbooruUrl, selected["file_url"]))
     image = None
     try:
-        image = urllib.request.urlopen(danbooruUrl + selected.file_url)
+        image = urllib.request.urlopen(danbooruUrl + selected["file_url"])
         await client.send_file(message.channel, io.BytesIO(image.read()), filename="danbooru.png")
     except Exception as e:
         logging.exception("Failed to download danbooru image")
