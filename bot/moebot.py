@@ -145,8 +145,7 @@ def setup():
     commands["sleep"] = commSleep
     commands["count"] = commCount
     commands["random"] = commRandomMoe
-    commands["db"] = commRandomDan
-    commands["danbooru"] = commRandomDan
+    commands["danb"] = commRandomDan
     logger.debug("Added the following commands:")
     for c in commands:
         logger.debug(c)

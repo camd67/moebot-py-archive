@@ -7,6 +7,20 @@ sqliteDbFile = "moedata.db"
 conn = sqlite3.connect(sqliteDbFile)
 db = conn.cursor()
 
+def addChannelData(channel):
+    # check if channel already exists!
+    db.execute("INSERT INTO channel VALUES(?,?)", channel.id, channel.name)
+    log.info("Inserted into channel the new channel {} : {}".format(channel.id, channel.name))
+    log.info(db.fetchone())
+
+def addUserData(user):
+    # check for existing user, if not add
+    db.execute("INSERT INTO user VALUES(?,?)", channel.id, channel.name)
+    log.info("Inserted into channel the new channel {} : {}".format(channel.id, channel.name))
+    log.info(db.fetchone())
+
+def
+
 def permitCommand(channel, user, command):
     db.execute("SELECT id FROM command WHERE name = ?", command)
     rows = db.fetchall()
