@@ -1,5 +1,5 @@
 import pytest
-import bot.comm_processor
+import bot.commprocessor
 
 def test_iscommand():
     assert bot.comm_processor.isCommand("moe test")

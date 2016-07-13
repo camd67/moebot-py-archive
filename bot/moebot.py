@@ -1,7 +1,7 @@
 import asyncio
 import discord
 import praw
-from bot import comm_processor
+from bot import commprocessor
 import random
 import logging
 import urllib
