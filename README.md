@@ -19,8 +19,4 @@ Moebot relies upon the following libraries, all of which can be installed with p
 * [praw](https://github.com/Rapptz/discord.py)
 * configparser
 
-You will need to create a folder named `log` containing the file `output.log` in order to get logging
-
-You will also need to create the file `bot.ini` within the `config` folder in order to get Moebot to connect. This file contains the `bot token`, `reddit user agent`, and `log output path`
-
-Please use branches to manage your code when contributing
+Check out [the wiki page on contribution](https://github.com/camd67/moebot/wiki/contributing) for file and contribution help.

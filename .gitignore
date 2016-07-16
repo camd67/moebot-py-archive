@@ -1,7 +1,6 @@
-# db related items
-moedata.*
-
+db/
 config/
+data/meme.txt
 log
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,go,sass,python
