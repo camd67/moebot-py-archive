@@ -17,7 +17,7 @@ def readConfig():
 
 
 if __name__ == '__main__':
-    logPath = path.realpath("config/log.conf")
+    logPath = path.realpath("config/log.ini")
     logging.config.fileConfig(logPath)
     log = logging.getLogger("root")
     config = readConfig()
