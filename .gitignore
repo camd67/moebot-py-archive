@@ -1,7 +1,7 @@
 # db related items
 moedata.*
 
-config/bot.ini
+config/
 log
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,go,sass,python

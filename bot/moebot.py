@@ -7,14 +7,17 @@ import logging
 import urllib
 import io
 import json
+from os import path
 
 client = discord.Client()
 admins = ["84394456941359104", "172495826264915968"]
 mods = []
 commands = {}
-permittedChannels = [];
-reddit = None;
+permittedChannels = []
+reddit = None
 logger = logging.getLogger("moebot")
+memeText = []
+memeTextLineCount = 0
 
 # Client events
 @client.event
@@ -25,10 +28,10 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if comm_processor.isCommand(message.content) and message.author.id != client.user.id:
-        com = comm_processor.getCommandName(message.content)
+    if commprocessor.isCommand(message.content) and message.author.id != client.user.id:
+        com = commprocessor.getCommandName(message.content)
         logger.debug("Recieved command: " + com)
-        args = comm_processor.getArguments(message.content)
+        args = commprocessor.getArguments(message.content)
         if com in commands:
             await client.send_typing(message.channel)
             await commands[com](message, args);
@@ -37,6 +40,9 @@ async def on_message(message):
 #
 #   Begin commands
 #
+
+async def commPasta(message, args):
+    await client.send_message(message.channel, memeText[random.randrange(memeTextLineCount)])
 
 # both of these should figure out a way to store results, then grab a random one from there
 async def commRandomDan(message, args):
@@ -139,6 +145,7 @@ async def logout():
 
 def setup():
     logger.debug("Moebot setup begin...")
+    # add commands
     commands["logout"] = commLogout
     commands["brainpower"] = commBrainpower
     commands["goodshit"] = commGoodshit
@@ -146,9 +153,18 @@ def setup():
     commands["count"] = commCount
     commands["random"] = commRandomMoe
     commands["danb"] = commRandomDan
+    commands["pasta"] = commPasta
     logger.debug("Added the following commands:")
     for c in commands:
         logger.debug(c)
+    # get lines for meme.txt
+    f = open(path.realpath("config/meme.txt"), "r", encoding="UTF-8")
+    global memeTextLineCount
+    global memeText
+    for line in f:
+        memeTextLineCount += 1
+        memeText.append(line)
+    f.close()
     logger.debug("Moebot setup end...")
 
 def run(token, userAgent):
