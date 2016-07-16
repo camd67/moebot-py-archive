@@ -158,7 +158,7 @@ def setup():
     for c in commands:
         logger.debug(c)
     # get lines for meme.txt
-    f = open(path.realpath("config/meme.txt"), "r", encoding="UTF-8")
+    f = open(path.realpath("data/meme.txt"), "r", encoding="UTF-8")
     global memeTextLineCount
     global memeText
     for line in f:
