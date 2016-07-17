@@ -5,12 +5,7 @@ Post all sorts of moe, memes, and also some actually useful moderation features!
 
 ## List of Commands
 All commands are prefaced with `moe`
-* `random` - returns a random image from r/awwnime/hot
-* `count` - counts up that user's messages in that channel
-* `danb tag` - searches and returns a random image given a tag (no autocomplete or corrections!)
-* `sleep` - sleeps for about 5 seconds
-* `brainpower` - spams twitch chat
-* `goodshit` - classic meme time
+Check out [the wiki page for all commands](https://github.com/camd67/moebot/wiki).
 
 
 ## Developing MoeBot
