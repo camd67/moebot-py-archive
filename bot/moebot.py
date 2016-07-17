@@ -41,6 +41,15 @@ async def on_message(message):
 #   Begin commands
 #
 
+async def commGame(message, args):
+    if message.author.id in admins:
+        gameTitle = commprocessor.getArguments(message.content)[0]
+        game = discord.Game(name=gameTitle, url="", type=0)
+        await asyncio.wait([
+            client.change_status(game=game),
+            client.send_message(message.channel, "What kind of game is '{}'...?".format(gameTitle))
+            ])
+
 async def commPasta(message, args):
     await client.send_message(message.channel, memeText[random.randrange(memeTextLineCount)])
 
@@ -154,6 +163,7 @@ def setup():
     commands["random"] = commRandomMoe
     commands["danb"] = commRandomDan
     commands["pasta"] = commPasta
+    commands["game"] = commGame
     logger.debug("Added the following commands:")
     for c in commands:
         logger.debug(c)
