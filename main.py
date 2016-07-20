@@ -27,7 +27,8 @@ if __name__ == '__main__':
     try:
         moebot.run(config["bottoken"], config["useragent"])
     except KeyboardInterrupt as e:
-        moebot.logout()
+        # Need to run these async functions in a sync method
+        asyncio.get_event_loop().run_until_complete(moebot.logout())
     finally:
         if moebot.client.is_logged_in:
-            moebot.logout()
+            asyncio.get_event_loop().run_until_complete(moebot.logout())

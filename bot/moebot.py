@@ -148,9 +148,9 @@ async def sendErrorMessage(message, e):
     # would be good to send the exception over to Salt in a private message
 
 async def logout():
-    await client.logout()
-    logger.debug("Logged out")
+    logger.debug("Logging out")
     logger.debug("=======================================")
+    await client.logout()
 
 def setup():
     logger.debug("Moebot setup begin...")
