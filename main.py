@@ -5,7 +5,7 @@ from os import path
 import datetime
 import logging
 import logging.config
-import asyncio
+#import asyncio
 
 def readConfig():
     output = {}
@@ -28,8 +28,9 @@ if __name__ == '__main__':
     try:
         moebot.run(config["bottoken"], config["useragent"])
     except KeyboardInterrupt as e:
-        # Need to run these async functions in a sync method
-        asyncio.get_event_loop().run_until_complete(moebot.logout())
-    finally:
-        if moebot.client.is_logged_in:
-            asyncio.get_event_loop().run_until_complete(moebot.logout())
+        # These aren't working as expected. Log an error for now. Handle logout later
+        #asyncio.get_event_loop().run_until_complete(moebot.logout())
+        log.exception("Error when running moebot!!")
+    #finally:
+    #    if moebot.client.is_logged_in:
+    #        asyncio.get_event_loop().run_until_complete(moebot.logout())
