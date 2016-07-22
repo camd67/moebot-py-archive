@@ -30,7 +30,8 @@ async def on_ready():
 async def on_message(message):
     if commprocessor.isCommand(message.content) and message.author.id != client.user.id:
         com = commprocessor.getCommandName(message.content)
-        logger.debug("Recieved command: " + com)
+        logger.debug("Recieved command: \"{}\" from user {}/{} in channel {}/{}"
+            .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id))
         args = commprocessor.getArguments(message.content)
         if com in commands:
             await client.send_typing(message.channel)
