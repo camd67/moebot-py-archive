@@ -7,7 +7,9 @@ import logging
 import urllib
 import io
 import json
-from os import path
+from os import path, listdir
+from os.path import isfile, join
+from PIL import Image
 
 client = discord.Client()
 admins = ["84394456941359104", "172495826264915968"]
@@ -17,6 +19,8 @@ permittedChannels = []
 reddit = None
 logger = logging.getLogger("moebot")
 memeText = []
+smugFaces = []
+smugFolder = "smug/"
 memeTextLineCount = 0
 
 # Client events
@@ -41,6 +45,10 @@ async def on_message(message):
 #
 #   Begin commands
 #
+
+async def commSmug(message, args):
+    chosenSmug = random.randrange(len(smugFaces))
+    await client.send_file(message.channel, smugFolder + smugFaces[chosenSmug], filename="smug.png")
 
 async def commGame(message, args):
     if message.author.id in admins:
@@ -165,6 +173,7 @@ def setup():
     commands["danb"] = commRandomDan
     commands["pasta"] = commPasta
     commands["game"] = commGame
+    commands["smug"] = commSmug
     logger.debug("Added the following commands:")
     for c in commands:
         logger.debug(c)
@@ -176,6 +185,8 @@ def setup():
         memeTextLineCount += 1
         memeText.append(line)
     f.close()
+    global smugFaces
+    smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
     logger.debug("Moebot setup end...")
 
 def run(token, userAgent):

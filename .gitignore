@@ -2,6 +2,7 @@ db/
 config/
 data/meme.txt
 log/
+smug/
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,go,sass,python
 
