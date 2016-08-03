@@ -142,6 +142,9 @@ async def commBrainpower(message, args):
         "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA", "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA",
         "오-오오오오오오오오오오 아아아아이-아-아-아이-아-우 저-어어어어어어어어어어어어 아아이-오-아-아-우-우-아- 이-이이이-이이-이이이 아아아아이-아-이-아이-이-아-저-어어어-어어-어어-어어 이이이이오-아-아아아-아아아아"]
     await client.send_message(message.channel, bp[random.randrange(4)])
+
+async def commHelp(message, args):
+    await client.send_message(message.channel, "Commands are `moe` followed by one of the following: {}".format(list(commands.keys())))
 #
 #   End commands
 #
@@ -158,6 +161,7 @@ async def logout():
 def setup():
     logger.debug("Moebot setup begin...")
     # add commands
+    commands["help"] = commHelp
     commands["brainpower"] = commBrainpower
     commands["goodshit"] = commGoodshit
     commands["sleep"] = commSleep
