@@ -162,7 +162,7 @@ async def commBrainpower(message, args):
 
 @command("help")
 async def commHelp(message, args):
-    await client.send_message(message.channel, "Commands are `moe` followed by one of the following: {}".format(list(commands.keys())))
+    await client.send_message(message.channel, "Commands are `" + commprocessor.prefix + "` followed by one of the following: {}".format(list(commands.keys())))
 #
 #   End commands
 #
