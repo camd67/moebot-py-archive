@@ -14,7 +14,7 @@ CREATE TABLE "ratings" (
 	FOREIGN KEY(`imageId`) REFERENCES `image`(`id`),
 	FOREIGN KEY(`userId`) REFERENCES `user`(`id`)
 );
-CREATE TABLE `permittedCommand` (
+CREATE TABLE `channel_command_permissions` (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`channelId`	INTEGER NOT NULL,
 	`commandId`	INTEGER NOT NULL,
