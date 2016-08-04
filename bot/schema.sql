@@ -35,7 +35,7 @@ CREATE TABLE `channels` (
 );
 CREATE TABLE `tags` (
     `id`    INTEGER PRIMARY KEY AUTOINCREMENT,
-    `name`  TEXT NOT NULL
+    `name`  TEXT NOT NULL UNIQUE
 );
 CREATE TABLE `tag_connections` (
     `link_id`   INTEGER PRIMARY KEY AUTOINCREMENT,
