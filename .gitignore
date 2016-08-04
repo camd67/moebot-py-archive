@@ -1,5 +1,6 @@
 db/
-config/
+config/*
+!config/log.ini
 data/meme.txt
 log/
 smug/
