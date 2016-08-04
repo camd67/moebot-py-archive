@@ -1,4 +1,4 @@
-BEGIN TRANSACTION;
+-- BEGIN TRANSACTION;
 CREATE TABLE `users` (
 	`user_id`	    INTEGER PRIMARY KEY,
 	`mention`	    TEXT NOT NULL,
@@ -17,31 +17,33 @@ CREATE TABLE `channel_command_permissions` (
 	`user_id`   	INTEGER NOT NULL,
 	FOREIGN KEY(`channel_id`) REFERENCES channels(channel_id),
 	FOREIGN KEY(`command_id`) REFERENCES commands(command_id),
-	UNIQUE (`channelId`, `commandId`) ON CONFLICT REPLACE
+	UNIQUE (`channel_id`, `command_id`) ON CONFLICT REPLACE
 );
 CREATE TABLE `images` (
 	`id`        INTEGER PRIMARY KEY AUTOINCREMENT,
-	`filepath`	TEXT NOT NULL UNIQUE,
+	`file_path`	TEXT NOT NULL,
 	`source`	TEXT DEFAULT `unknown`,
-	`tags`	    TEXT NOT NULL,
-	PRIMARY KEY(int)
+	UNIQUE (`file_path` COLLATE NOCASE)
 );
 CREATE TABLE `commands` (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
-	`name`	TEXT NOT NULL UNIQUE
+	`name`	TEXT NOT NULL,
+	UNIQUE (`name` COLLATE NOCASE)
 );
 CREATE TABLE `channels` (
 	`channel_id`    INTEGER PRIMARY KEY
 );
 CREATE TABLE `tags` (
     `id`    INTEGER PRIMARY KEY AUTOINCREMENT,
-    `name`  TEXT NOT NULL UNIQUE
+    `name`  TEXT NOT NULL,
+    UNIQUE (`name` COLLATE NOCASE)
 );
 CREATE TABLE `tag_connections` (
     `link_id`   INTEGER PRIMARY KEY AUTOINCREMENT,
     `image_id`  INTEGER NOT NULL,
     `tag_id`    INTEGER NOT NULL,
     FOREIGN KEY(`image_id`) REFERENCES images(`id`),
-    FOREIGN KEY(`tag_id`) REFERENCES tags(`id`)
+    FOREIGN KEY(`tag_id`) REFERENCES tags(`id`),
+    UNIQUE (`image_id`, `tag_id`)
 );
-COMMIT;
+-- COMMIT;
