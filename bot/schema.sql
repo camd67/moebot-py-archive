@@ -1,41 +1,47 @@
 BEGIN TRANSACTION;
-CREATE TABLE "users" (
-	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
-	`discordId`	INT NOT NULL UNIQUE,
-	`name`	TEXT NOT NULL,
-	`mention`	TEXT NOT NULL,
-	`displayName`	TEXT NOT NULL
+CREATE TABLE `users` (
+	`user_id`	    INTEGER PRIMARY KEY,
+	`mention`	    TEXT NOT NULL,
+	`display_name`	TEXT NOT NULL
 );
-CREATE TABLE "ratings" (
-	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
-	`imageId`	INT NOT NULL,
-	`userId`	INT NOT NULL,
-	`rating`	INT NOT NULL,
-	FOREIGN KEY(`imageId`) REFERENCES `image`(`id`),
-	FOREIGN KEY(`userId`) REFERENCES `user`(`id`)
+CREATE TABLE `ratings` (
+	`id`	    INTEGER PRIMARY KEY AUTOINCREMENT,
+	`user_id`	INTEGER NOT NULL,
+	`rating`	INTEGER NOT NULL,
+	FOREIGN KEY(`id`) REFERENCES `images`(`id`),
+	FOREIGN KEY(`user_id`) REFERENCES `users`(`user_id`)
 );
 CREATE TABLE `channel_command_permissions` (
-	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
-	`channelId`	INTEGER NOT NULL,
-	`commandId`	INTEGER NOT NULL,
-	`permitBy`	INTEGER NOT NULL,
-	FOREIGN KEY(`channelId`) REFERENCES channel(id),
-	FOREIGN KEY(`commandId`) REFERENCES command(id),
+	`channel_id`	INTEGER PRIMARY KEY,
+	`command_id`	INTEGER NOT NULL,
+	`user_id`   	INTEGER NOT NULL,
+	FOREIGN KEY(`channel_id`) REFERENCES channels(channel_id),
+	FOREIGN KEY(`command_id`) REFERENCES commands(command_id),
 	UNIQUE (`channelId`, `commandId`) ON CONFLICT REPLACE
 );
-CREATE TABLE "images" (
-	`int`	id,
+CREATE TABLE `images` (
+	`id`        INTEGER PRIMARY KEY AUTOINCREMENT,
 	`filepath`	TEXT NOT NULL UNIQUE,
-	`source`	TEXT DEFAULT 'unknown',
-	`tags`	TEXT NOT NULL,
+	`source`	TEXT DEFAULT `unknown`,
+	`tags`	    TEXT NOT NULL,
 	PRIMARY KEY(int)
 );
-CREATE TABLE "commands" (
+CREATE TABLE `commands` (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`name`	TEXT NOT NULL UNIQUE
 );
-CREATE TABLE "channels" (
-	`id`	INTEGER UNIQUE,
-	PRIMARY KEY(id)
+CREATE TABLE `channels` (
+	`channel_id`    INTEGER PRIMARY KEY
+);
+CREATE TABLE `tags` (
+    `id`    INTEGER PRIMARY KEY AUTOINCREMENT,
+    `name`  TEXT NOT NULL
+);
+CREATE TABLE `tag_connections` (
+    `link_id`   INTEGER PRIMARY KEY AUTOINCREMENT,
+    `image_id`  INTEGER NOT NULL,
+    `tag_id`    INTEGER NOT NULL,
+    FOREIGN KEY(`image_id`) REFERENCES images(`id`),
+    FOREIGN KEY(`tag_id`) REFERENCES tags(`id`)
 );
 COMMIT;
