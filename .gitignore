@@ -2,6 +2,7 @@ db/
 config/*
 !config/log.ini
 data/meme.txt
+data/moebot.db
 log/
 smug/
 
