@@ -1,36 +1,73 @@
 import sqlite3
 import logging
+from discord import utils
+from bot import moebot # Maybe this should be passed as an arg instead
+from bot import queries
+
+db = None
+conn = None
+log = None
+
+def init(dbPath, allowCreateDb):
+    global db, conn, log
+    log = logging.getLogger("database")
+    conn = sqlite3.connect(dbPath)
+    db = conn.cursor()
+    db.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    if db.fetchone() is None:
+        if allowCreateDb.lower() == 'true':
+            log.warning("Database is empty or does not exist! Creating tables.")
+            createTables()
+        else:
+            log.info(allowCreateDb.lower())
+            raise FileNotFoundError("Database {} is empty or does not exist!".format(dbPath))
 
 
-log = logging.getLogger("database")
-sqliteDbFile = "moedata.db"
-conn = sqlite3.connect(sqliteDbFile)
-db = conn.cursor()
+def createTables():
+    schemaFile = open("bot/schema.sql", "r")
+    schema = schemaFile.read()
+    schemaFile.close()
+    db.executescript(schema)
+    conn.commit()
 
 def addChannelData(channel):
-    # check if channel already exists!
-    db.execute("INSERT INTO channel VALUES(?,?)", channel.id, channel.name)
-    log.info("Inserted into channel the new channel {} : {}".format(channel.id, channel.name))
-    log.info(db.fetchone())
+    row = { 'channelId': channel }
+    db.execute(queries.add_channel_query, row)
+    log.info("Inserted new channel {} into table channels.".format(moebot.client.get_channel(channel).name))
+    conn.commit()
 
-def addUserData(user):
+def addUserData(user, channel): # Could pass server instead of channel
     # check for existing user, if not add
-    db.execute("INSERT INTO user VALUES(?,?)", channel.id, channel.name)
-    log.info("Inserted into channel the new channel {} : {}".format(channel.id, channel.name))
-    log.info(db.fetchone())
-
-def
+    row = { 'userId': user }
+    db.execute(queries.add_user_query, row)
+    log.debug("Inserted new user {} ({})",
+              utils.find(lambda m: m.id == user, channel.server.members, user))
+    conn.commit()
 
 def permitCommand(channel, user, command):
-    db.execute("SELECT id FROM command WHERE name = ?", command)
-    rows = db.fetchall()
-    if not rows or len(rows) > 1:
-        log.error("More than one command found when searching for {}".format(command))
-    db.execute("INSERT INTO permittedCommand VALUES(NULL, ?, ?, ?)", channel.id, rows[0].id, user.id)
-    log.info("Inserted into permitted commands the command {} to {}".format(command, channel.name))
-    log.info(db.fetchone())
+    if isCommandPermitted(channel, command):
+        log.info("Overwriting command permit for channel {} command {} "
+                 "with new user {}.".format(channel, command, user))
+    row = {
+        'channelId': channel,
+        'userId': user,
+        'commandId': command.lower()
+    }
+    db.execute(queries.insert_permitted_query, row)
+    log.info("{} inserted into {} into permitted commands for channel {}."
+             .format(user, command, moebot.client.get_channel(channel).name))
+    conn.commit()
+
+def getCommandId(commandName):
+    cols = { 'commandName': commandName }
+    db.execute(queries.get_command_id_query, cols)
+    return db.fetchone()
 
 def isCommandPermitted(channel, command):
-    db.execute("SELECT channelId FROM permittedCommand JOIN command ON command.id = permittedCommand.commandId WHERE channelId = ? AND commandId = ?", channel.id, command)
-    rows = db.fetchall()
-    return not rows
+    cols = {
+        'channelId': channel,
+        'commandId': command
+    }
+    db.execute(queries.check_permitted_query, cols)
+    rows = db.fetchone()
+    return rows is not None
