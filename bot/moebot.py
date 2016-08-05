@@ -2,6 +2,7 @@ import asyncio
 import discord
 import praw
 from bot import commprocessor
+from bot import dbmanager
 import random
 import logging
 import urllib
@@ -9,6 +10,7 @@ import io
 import json
 from os import path, listdir
 from os.path import isfile, join
+from PIL import Image
 
 client = discord.Client()
 admins = ["84394456941359104", "172495826264915968"]
@@ -176,7 +178,7 @@ async def logout():
     logger.debug("=======================================")
     await client.logout()
 
-def setup():
+def setup(config):
     logger.debug("Moebot setup begin...")
     # get lines for meme.txt
     f = open(path.realpath("data/meme.txt"), "r", encoding="UTF-8")
@@ -188,6 +190,7 @@ def setup():
     f.close()
     global smugFaces
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
+    dbmanager.init(config["dbpath"], config["allowdbcreation"])
     logger.debug("Moebot setup end...")
 
 def run(token, userAgent):

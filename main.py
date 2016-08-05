@@ -24,7 +24,7 @@ if __name__ == '__main__':
     config = readConfig()
     log.debug("=======================================")
     log.debug(" BEGIN LOG FILE FOR MOEBOT")
-    moebot.setup()
+    moebot.setup(config)
     try:
         moebot.run(config["bottoken"], config["useragent"])
     except KeyboardInterrupt as e:
