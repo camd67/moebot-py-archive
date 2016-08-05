@@ -1,10 +1,7 @@
-db/
+data/
 config/*
 !config/log.ini
-data/meme.txt
-data/moebot.db
 log/
-smug/
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,go,sass,python
 

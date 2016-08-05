@@ -21,7 +21,8 @@ reddit = None
 logger = logging.getLogger("moebot")
 memeText = []
 smugFaces = []
-smugFolder = "smug/"
+smugFolder = None
+uploadFolder = None
 memeTextLineCount = 0
 
 # Decorator for commands
@@ -188,7 +189,9 @@ def setup(config):
         memeTextLineCount += 1
         memeText.append(line)
     f.close()
-    global smugFaces
+    global smugFaces, smugFolder, uploadFolder
+    smugFolder = config['smugfolder']
+    uploadFolder = config['uploadfolder']
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
     dbmanager.init(config['dbpath'], config['allowdbcreation'])
     commprocessor.prefix = config['prefix'] + " "
