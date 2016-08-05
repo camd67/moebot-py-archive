@@ -1,16 +1,6 @@
-add_channel_query = '''
-    INSERT OR IGNORE INTO channels ( channel_id )
-    VALUES (:channelId)
-'''
-
 get_command_id_query = '''
     SELECT id FROM channels
     WHERE command_id = :commandId
-'''
-
-add_user_query = '''
-    INSERT OR IGNORE INTO users ( user_id )
-    VALUES ( :userId )
 '''
 
 insert_permitted_query = '''

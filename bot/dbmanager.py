@@ -22,26 +22,11 @@ def init(dbPath, allowCreateDb):
             log.info(allowCreateDb.lower())
             raise FileNotFoundError("Database {} is empty or does not exist!".format(dbPath))
 
-
 def createTables():
     schemaFile = open("bot/schema.sql", "r")
     schema = schemaFile.read()
     schemaFile.close()
     db.executescript(schema)
-    conn.commit()
-
-def addChannelData(channel):
-    row = { 'channelId': channel }
-    db.execute(queries.add_channel_query, row)
-    log.info("Inserted new channel {} into table channels.".format(moebot.client.get_channel(channel).name))
-    conn.commit()
-
-def addUserData(user, channel): # Could pass server instead of channel
-    # check for existing user, if not add
-    row = { 'userId': user }
-    db.execute(queries.add_user_query, row)
-    log.debug("Inserted new user {} ({})",
-              utils.find(lambda m: m.id == user, channel.server.members, user))
     conn.commit()
 
 def permitCommand(channel, user, command):
