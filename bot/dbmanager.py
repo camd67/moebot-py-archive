@@ -4,39 +4,50 @@ from discord import utils
 from bot import moebot # Maybe this should be passed as an arg instead
 from bot import queries
 
+db = None
+conn = None
+log = None
+
+def init(dbPath, allowCreateDb):
+    global db, conn, log
+    log = logging.getLogger("database")
+    conn = sqlite3.connect(dbPath)
+    db = conn.cursor()
+    db.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    if db.fetchone() is None:
+        if allowCreateDb.lower() == 'true':
+            log.warning("Database is empty or does not exist! Creating tables.")
+            createTables()
+        else:
+            log.info(allowCreateDb.lower())
+            raise FileNotFoundError("Database {} is empty or does not exist!".format(dbPath))
+
+
 def createTables():
-    schemaFile = open('bot/schema.sql', 'r')
+    schemaFile = open("bot/schema.sql", "r")
     schema = schemaFile.read()
     schemaFile.close()
     db.executescript(schema)
     conn.commit()
 
-log = logging.getLogger("database")
-sqliteDbFile = "data/moedata.db"
-conn = sqlite3.connect(sqliteDbFile)
-db = conn.cursor()
-db.execute("SELECT name FROM sqlite_master WHERE type='table'")
-if db.fetchone() is None:
-    createTables()
-
 def addChannelData(channel):
     row = { 'channelId': channel }
     db.execute(queries.add_channel_query, row)
-    log.info('Inserted new channel {} into table channels.'.format(moebot.client.get_channel(channel).name))
+    log.info("Inserted new channel {} into table channels.".format(moebot.client.get_channel(channel).name))
     conn.commit()
 
 def addUserData(user, channel): # Could pass server instead of channel
     # check for existing user, if not add
     row = { 'userId': user }
     db.execute(queries.add_user_query, row)
-    log.debug('Inserted new user {} ({})',
+    log.debug("Inserted new user {} ({})",
               utils.find(lambda m: m.id == user, channel.server.members, user))
     conn.commit()
 
 def permitCommand(channel, user, command):
     if isCommandPermitted(channel, command):
-        log.info('Overwriting command permit for channel {} command {} '
-                 'with new user {}.'.format(channel, command, user))
+        log.info("Overwriting command permit for channel {} command {} "
+                 "with new user {}.".format(channel, command, user))
     row = {
         'channelId': channel,
         'userId': user,
