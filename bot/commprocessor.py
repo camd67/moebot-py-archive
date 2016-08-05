@@ -1,7 +1,6 @@
 word = True
 # Always end with a space if it is a word (so, comm message vs !message)
-prefix = "moe "
-
+prefix = None
 
 def isCommand(message):
     return message.startswith(prefix)

@@ -190,7 +190,8 @@ def setup(config):
     f.close()
     global smugFaces
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
-    dbmanager.init(config["dbpath"], config["allowdbcreation"])
+    dbmanager.init(config['dbpath'], config['allowdbcreation'])
+    commprocessor.prefix = config['prefix'] + " "
     logger.debug("Moebot setup end...")
 
 def run(token, userAgent):
