@@ -1,3 +1,5 @@
+smug/
+db/*.db
 data/
 config/*
 !config/log.ini

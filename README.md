@@ -12,6 +12,6 @@ Check out [the wiki page for all commands](https://github.com/camd67/moebot/wiki
 Moebot relies upon the following libraries, all of which can be installed with pip
 * [discord.py](https://github.com/Rapptz/discord.py)
 * [praw](https://github.com/Rapptz/discord.py)
-* configparser
+* [Pillow](https://python-pillow.org/)
 
 Check out [the wiki page on contribution](https://github.com/camd67/moebot/wiki/contributing) for file and contribution help.
