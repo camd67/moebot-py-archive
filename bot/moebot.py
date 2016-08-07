@@ -48,13 +48,30 @@ async def on_message(message):
             .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id))
         args = commprocessor.getArguments(message.content)
         if com in commands:
-            await client.send_typing(message.channel)
-            await commands[com](message, args)
+            if com == "permit" or com == "ban" or dbmanager.isCommandPermitted(message.channel.id, com):
+                await client.send_typing(message.channel)
+                await commands[com](message, args)
+            else:
+                await client.send_message(message.channel, "\"{}\" isn't permitted in this channel".format(com))
         else:
-            logger.debug("could not find command: "+com)
+            await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
 #
 #   Begin commands
 #
+
+@command("ban")
+async def commBanCommand(message, args):
+    # shouldn't ever be able to ban or permit the ban and permit commands
+    if args[0] != "ban" and  args[0] != "permit":
+        dbmanager.banCommand(message.channel.id, message.author.id, args[0])
+        await client.send_message(message.channel, "Command \"{}\" has been banned from this channel!".format(args[0]))
+
+@command("permit")
+async def commPermitCommand(message, args):
+    # shouldn't ever be able to ban or permit the ban and permit commands
+    if args[0] != "ban" and  args[0] != "permit":
+        dbmanager.permitCommand(message.channel.id, message.author.id, args[0])
+        await client.send_message(message.channel, "Command \"{}\" has been permitted in this channel!".format(args[0]))
 
 @command("smug")
 async def commSmug(message, args):
@@ -143,7 +160,7 @@ async def commSleep(message, args):
     await asyncio.sleep(5)
     await client.send_message(message.channel, 'Ah, that was a nice nap')
 
-@command("permit")
+@command("elevate")
 async def commPermit(message, args):
     # add in argument of who to permit
     if message.author.id in admins:
@@ -179,6 +196,9 @@ async def logout():
     logger.debug("=======================================")
     await client.logout()
 
+def setupDatabase():
+    dbmanager.updateCommands(commands)
+
 def setup(config):
     logger.debug("Moebot setup begin...")
     # get lines for meme.txt
@@ -194,6 +214,7 @@ def setup(config):
     uploadFolder = config['uploadfolder']
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
     dbmanager.init(config['dbpath'], config['allowdbcreation'])
+    setupDatabase()
     commprocessor.prefix = config['prefix'] + " "
     logger.debug("Moebot setup end...")
 

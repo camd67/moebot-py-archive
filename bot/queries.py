@@ -1,18 +1,30 @@
+insert_command = '''
+    INSERT OR IGNORE INTO commands (name)
+    VALUES (:name)
+'''
+
 get_command_id_query = '''
     SELECT id FROM channels
     WHERE command_id = :commandId
 '''
 
-insert_permitted_query = '''
+insert_permitted = '''
     INSERT INTO channel_command_permissions
-    ( channel_id, command, user_id )
-    VALUES (:channelId, :commandId, :user)
+    ( channel_id, command_id, user_id )
+    VALUES (:channelId,
+            (SELECT id FROM commands WHERE name = :commandName),
+            :userId)
+'''
+
+delete_permitted = '''
+    DELETE FROM channel_command_permissions
+    WHERE command_id = (SELECT id FROM commands WHERE name = :commandName) AND channel_id = :channelId
 '''
 
 check_permitted_query = '''
     SELECT * FROM channel_command_permissions
     WHERE channel_id = :channelId
-    AND command = :commandId
+    AND command_id = (SELECT id FROM commands WHERE name = :commandName)
 '''
 
 add_image_query = '''
