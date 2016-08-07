@@ -160,15 +160,6 @@ async def commSleep(message, args):
     await asyncio.sleep(5)
     await client.send_message(message.channel, 'Ah, that was a nice nap')
 
-@command("elevate")
-async def commPermit(message, args):
-    # add in argument of who to permit
-    if message.author.id in admins:
-        await client.send_message(message.channel, 'You\'re already in the list of admins!')
-    else:
-        admins.append(message.author.id)
-        await client.send_message(message.channel, 'Added ' + message.author.name + ' to the list of admins ('+message.author.id+')')
-
 @command("goodshit")
 async def commGoodshit(message, args):
     await client.send_message(message.channel, ":ok_hand::eyes::ok_hand::eyes::ok_hand::eyes::ok_hand::eyes::ok_hand::eyes: good shit go౦ԁ sHit:ok_hand: thats :heavy_check_mark: some good:ok_hand::ok_hand:shit right:ok_hand::ok_hand:there:ok_hand::ok_hand::ok_hand: right:heavy_check_mark:there :heavy_check_mark::heavy_check_mark:if i do ƽaү so my self :100: i say so :100: thats what im talking about right there right there (chorus: ʳᶦᵍʰᵗ ᵗʰᵉʳᵉ) mMMMMᎷМ:100: :ok_hand::ok_hand: :ok_hand:НO0ОଠOOOOOОଠଠOoooᵒᵒᵒᵒᵒᵒᵒᵒᵒ:ok_hand: :ok_hand::ok_hand: :ok_hand: :100: :ok_hand: :eyes: :eyes: :eyes: :ok_hand::ok_hand:Good shit")
