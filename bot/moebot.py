@@ -48,13 +48,30 @@ async def on_message(message):
             .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id))
         args = commprocessor.getArguments(message.content)
         if com in commands:
-            await client.send_typing(message.channel)
-            await commands[com](message, args)
+            if com == "permit" or com == "ban" or dbmanager.isCommandPermitted(message.channel.id, com):
+                await client.send_typing(message.channel)
+                await commands[com](message, args)
+            else:
+                await client.send_message(message.channel, "\"{}\" isn't permitted in this channel".format(com))
         else:
-            logger.debug("could not find command: "+com)
+            await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
 #
 #   Begin commands
 #
+
+@command("ban")
+async def commBanCommand(message, args):
+    # shouldn't ever be able to ban or permit the ban and permit commands
+    if args[0] != "ban" and  args[0] != "permit":
+        dbmanager.banCommand(message.channel.id, message.author.id, args[0])
+        await client.send_message(message.channel, "Command \"{}\" has been banned from this channel!".format(args[0]))
+
+@command("permit")
+async def commPermitCommand(message, args):
+    # shouldn't ever be able to ban or permit the ban and permit commands
+    if args[0] != "ban" and  args[0] != "permit":
+        dbmanager.permitCommand(message.channel.id, message.author.id, args[0])
+        await client.send_message(message.channel, "Command \"{}\" has been permitted in this channel!".format(args[0]))
 
 @command("smug")
 async def commSmug(message, args):
@@ -143,15 +160,6 @@ async def commSleep(message, args):
     await asyncio.sleep(5)
     await client.send_message(message.channel, 'Ah, that was a nice nap')
 
-@command("permit")
-async def commPermit(message, args):
-    # add in argument of who to permit
-    if message.author.id in admins:
-        await client.send_message(message.channel, 'You\'re already in the list of admins!')
-    else:
-        admins.append(message.author.id)
-        await client.send_message(message.channel, 'Added ' + message.author.name + ' to the list of admins ('+message.author.id+')')
-
 @command("goodshit")
 async def commGoodshit(message, args):
     await client.send_message(message.channel, ":ok_hand::eyes::ok_hand::eyes::ok_hand::eyes::ok_hand::eyes::ok_hand::eyes: good shit go౦ԁ sHit:ok_hand: thats :heavy_check_mark: some good:ok_hand::ok_hand:shit right:ok_hand::ok_hand:there:ok_hand::ok_hand::ok_hand: right:heavy_check_mark:there :heavy_check_mark::heavy_check_mark:if i do ƽaү so my self :100: i say so :100: thats what im talking about right there right there (chorus: ʳᶦᵍʰᵗ ᵗʰᵉʳᵉ) mMMMMᎷМ:100: :ok_hand::ok_hand: :ok_hand:НO0ОଠOOOOOОଠଠOoooᵒᵒᵒᵒᵒᵒᵒᵒᵒ:ok_hand: :ok_hand::ok_hand: :ok_hand: :100: :ok_hand: :eyes: :eyes: :eyes: :ok_hand::ok_hand:Good shit")
@@ -179,6 +187,9 @@ async def logout():
     logger.debug("=======================================")
     await client.logout()
 
+def setupDatabase():
+    dbmanager.updateCommands(commands)
+
 def setup(config):
     logger.debug("Moebot setup begin...")
     # get lines for meme.txt
@@ -194,6 +205,7 @@ def setup(config):
     uploadFolder = config['uploadfolder']
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
     dbmanager.init(config['dbpath'], config['allowdbcreation'])
+    setupDatabase()
     commprocessor.prefix = config['prefix'] + " "
     logger.debug("Moebot setup end...")
 

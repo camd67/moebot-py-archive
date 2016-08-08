@@ -29,29 +29,51 @@ def createTables():
     db.executescript(schema)
     conn.commit()
 
-def permitCommand(channel, user, command):
-    if isCommandPermitted(channel, command):
-        log.info("Overwriting command permit for channel {} command {} "
+def updateCommands(comms):
+    try:
+        db.execute('BEGIN')
+        for c in comms:
+            db.execute(queries.insert_command, {'name': c})
+        conn.commit()
+    except sqlite3.DatabaseError: # Couple of other errors to catch, but this is the only one we care about
+        conn.rollback()
+
+def banCommand(channel, user, command):
+    if not isCommandPermitted(channel, command):
+        log.info("Overwriting (with ban) command permit for channel {} command {} "
                  "with new user {}.".format(channel, command, user))
     row = {
         'channelId': channel,
-        'userId': user,
-        'commandId': command.lower()
+        'commandName': command
     }
-    db.execute(queries.insert_permitted_query, row)
-    log.info("{} inserted into {} into permitted commands for channel {}."
+    db.execute(queries.delete_permitted, row)
+    log.info("{} banned command {} for channel {}."
              .format(user, command, moebot.client.get_channel(channel).name))
     conn.commit()
 
+def permitCommand(channelId, userId, command):
+    if isCommandPermitted(channelId, command):
+        log.info("Overwriting (with permit) command for channel {} command {} "
+                 "with new user {}.".format(channelId, command, userId))
+    row = {
+        'channelId': channelId,
+        'userId': userId,
+        'commandName': command
+    }
+    db.execute(queries.insert_permitted, row)
+    log.info("{} permitted command {} for channel {}."
+             .format(userId, command, moebot.client.get_channel(channelId).name))
+    conn.commit()
+
 def getCommandId(commandName):
-    cols = { 'commandName': commandName }
+    cols = {'commandName': commandName}
     db.execute(queries.get_command_id_query, cols)
     return db.fetchone()
 
-def isCommandPermitted(channel, command):
+def isCommandPermitted(channelId, command):
     cols = {
-        'channelId': channel,
-        'commandId': command
+        'channelId': channelId,
+        'commandName': command
     }
     db.execute(queries.check_permitted_query, cols)
     rows = db.fetchone()
