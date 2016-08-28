@@ -23,7 +23,7 @@ def init(dbPath, allowCreateDb):
             raise FileNotFoundError("Database {} is empty or does not exist!".format(dbPath))
 
 def createTables():
-    schemaFile = open("bot/schema.sql", "r")
+    schemaFile = open("bot/schema.sql", "r+")
     schema = schemaFile.read()
     schemaFile.close()
     db.executescript(schema)
@@ -40,20 +40,20 @@ def updateCommands(comms):
 
 def banCommand(channel, user, command):
     if not isCommandPermitted(channel, command):
-        log.info("Overwriting (with ban) command permit for channel {} command {} "
+        log.debug("Overwriting (with ban) command permit for channel {} command {} "
                  "with new user {}.".format(channel, command, user))
     row = {
         'channelId': channel,
         'commandName': command
     }
     db.execute(queries.delete_permitted, row)
-    log.info("{} banned command {} for channel {}."
+    log.debug("{} banned command {} for channel {}."
              .format(user, command, moebot.client.get_channel(channel).name))
     conn.commit()
 
 def permitCommand(channelId, userId, command):
     if isCommandPermitted(channelId, command):
-        log.info("Overwriting (with permit) command for channel {} command {} "
+        log.debug("Overwriting (with permit) command for channel {} command {} "
                  "with new user {}.".format(channelId, command, userId))
     row = {
         'channelId': channelId,
@@ -61,7 +61,7 @@ def permitCommand(channelId, userId, command):
         'commandName': command
     }
     db.execute(queries.insert_permitted, row)
-    log.info("{} permitted command {} for channel {}."
+    log.debug("{} permitted command {} for channel {}."
              .format(userId, command, moebot.client.get_channel(channelId).name))
     conn.commit()
 
