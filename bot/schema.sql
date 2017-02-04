@@ -1,53 +1,51 @@
-CREATE TABLE `role_assignments` (
-    `id`        INTEGER PRIMARY KEY AUTOINCREMENT,
-	`user_id`   INTEGER NOT NULL,
-	`role_id`   INTEGER NOT NULL,
-	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`),
-	UNIQUE (`user_id`, `role_id`) ON CONFLICT FAIL
+BEGIN TRANSACTION;
+CREATE TABLE `UserRole` (
+    `roleId` INTEGER,
+    `userId` INTEGER,
+    PRIMARY KEY(roleId,UserId),
+    FOREIGN KEY (roleId) REFERENCES Role(id),
+    FOREIGN KEY (userId) REFERENCES User(id)
 );
-CREATE TABLE `roles` (
-    `id`    INTEGER PRIMARY KEY AUTOINCREMENT,
-    `name`  TEXT NOT NULL,
-	UNIQUE (`name` COLLATE NOCASE)
+CREATE TABLE `User` (
+    `id` INTEGER PRIMARY KEY,
+    `username` TEXT
 );
-CREATE TABLE `ratings` (
-	`id`	    INTEGER PRIMARY KEY AUTOINCREMENT,
-	`image_id`  INTEGER NOT NULL,
-	`user_id`	INTEGER NOT NULL,
-	`rating`	INTEGER NOT NULL,
-	`date`      TEXT NOT NULL,
-	FOREIGN KEY (`image_id`) REFERENCES `images`(`id`)
+CREATE TABLE `Tag` (
+    `id` INTEGER PRIMARY KEY,
+    `name` TEXT
 );
-CREATE TABLE `channel_command_permissions` (
-	`channel_id`	INTEGER PRIMARY KEY,
-	`command_id`	INTEGER NOT NULL,
-	`user_id`   	INTEGER NOT NULL,
-	FOREIGN KEY (`command_id`) REFERENCES commands(command_id),
-	UNIQUE (`channel_id`, `command_id`) ON CONFLICT REPLACE
+CREATE TABLE `Role` (
+    `id` INTEGER PRIMARY KEY,
+    `name` TEXT,
+    `permissionLevel` INTEGER UNIQUE
 );
-CREATE TABLE `images` (
-	`id`            INTEGER PRIMARY KEY AUTOINCREMENT,
-	`file_path`	    TEXT NOT NULL,
-	`source`	    TEXT DEFAULT `unknown`,
-	`upload_date`   TEXT NOT NULL,
-	`uploader`      INTEGER NOT NULL,
-	UNIQUE (`file_path` COLLATE NOCASE)
+CREATE TABLE `PermittedCommand` (
+    `id` INTEGER PRIMARY KEY,
+    `commandName` TEXT,
+    `channelId` INTEGER,
+    FOREIGN KEY (channelId) REFERENCES Channel(id)
 );
-CREATE TABLE `commands` (
-	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
-	`name`	TEXT NOT NULL,
-	UNIQUE (`name` COLLATE NOCASE)
+CREATE TABLE `ImageTag` (
+    `imageId` INTEGER,
+    `tagId` INTEGER,
+    PRIMARY KEY (ImageId, TagId),
+    FOREIGN KEY (imageId) REFERENCES Image(id),
+    FOREIGN KEY (tagId) REFERENCES Tag(id)
 );
-CREATE TABLE `tags` (
-    `id`    INTEGER PRIMARY KEY AUTOINCREMENT,
-    `name`  TEXT NOT NULL,
-    UNIQUE (`name` COLLATE NOCASE)
+CREATE TABLE `Image` (
+    `id` INTEGER PRIMARY KEY,
+    `guid` TEXT,
+    `submitterId` INTEGER,
+    `caption` TEXT,
+    `qualityRating` INTEGER,
+    `channelId` INTEGER,
+    `postDate` INTEGER,
+    `hash` TEXT,
+    FOREIGN KEY (submitterId) REFERENCES User(id),
+    FOREIGN KEY (channelId) REFERENCES Channel(id)
 );
-CREATE TABLE `tag_connections` (
-    `link_id`   INTEGER PRIMARY KEY AUTOINCREMENT,
-    `image_id`  INTEGER NOT NULL,
-    `tag_id`    INTEGER NOT NULL,
-    FOREIGN KEY (`image_id`) REFERENCES images(`id`),
-    FOREIGN KEY (`tag_id`) REFERENCES tags(`id`),
-    UNIQUE (`image_id`, `tag_id`)
+CREATE TABLE `Channel` (
+    `id` INTEGER PRIMARY KEY,
+    `name` INTEGER
 );
+COMMIT;

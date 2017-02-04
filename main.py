@@ -26,7 +26,7 @@ if __name__ == '__main__':
     log.debug(" BEGIN LOG FILE FOR MOEBOT")
     moebot.setup(config)
     try:
-        moebot.run(config["bottoken"], config["useragent"])
+        moebot.run(config["bot_token"])
     except KeyboardInterrupt as e:
         # These aren't working as expected. Log an error for now. Handle logout later
         #asyncio.get_event_loop().run_until_complete(moebot.logout())

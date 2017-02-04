@@ -81,7 +81,7 @@ async def commSmug(message, args):
 @command("game")
 async def commGame(message, args):
     if message.author.id in admins:
-        gameTitle = args[0]
+        gameTitle = " ".join(args)
         game = discord.Game(name=gameTitle, url="", type=0)
         await asyncio.wait([
             client.change_status(game=game),
@@ -104,12 +104,12 @@ async def commRandomDan(message, args):
         posts = urllib.request.urlopen(fullUrl).read()
     except Exception as e:
         logging.exception("Failed to download all danbooru posts")
-        await sendErrorMessage(message, e)
+        await sendErrorMessage(message, e, "I couldn't download danbooru posts...")
         return
     # danbooru api returns an empty array on tag error...
     if len(posts) < 5:
         logger.debug("No results from: {}".format(fullUrl))
-        await client.send_message(message.channel, "I don't recognize that tag...")
+        await client.send_message(message.channel, "Doesn't look like danbooru likes that tag...")
         return
     index = random.randrange(numSubmissions)
     decodedJson = json.loads(posts.decode(encoding="UTF-8"))
@@ -121,7 +121,7 @@ async def commRandomDan(message, args):
         await client.send_file(message.channel, io.BytesIO(image.read()), filename="danbooru.png")
     except Exception as e:
         logging.exception("Failed to download danbooru image")
-        await sendErrorMessage(message, e)
+        await sendErrorMessage(message, e, "I couldn't download from danbooru")
         return
 
 @command("random")
@@ -141,7 +141,7 @@ async def commRandomMoe(message, args):
                 await client.send_file(message.channel, io.BytesIO(response.read()), filename="moe.png", content=submission.title)
             except Exception as e:
                 logging.exception("Failed to download reddit submission")
-                await sendErrorMessage(message, e)
+                await sendErrorMessage(message, e, "I couldn't download the image...")
                 return
             break
         currIndex+= 1
@@ -169,7 +169,14 @@ async def commBrainpower(message, args):
     bp = ["お－おおおおおおおおおお　ああえーあーあーいーあーうーおおーおおおおおおおおおおおおお　ああえーおーあーあーうーうーあー　ええーええーええーえええ　ああああえーあーえーいーえーあーじょーおおおーおおーおおーおお　ええええおーあーあああーああああ",
         "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA", "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA",
         "오-오오오오오오오오오오 아아아아이-아-아-아이-아-우 저-어어어어어어어어어어어어 아아이-오-아-아-우-우-아- 이-이이이-이이-이이이 아아아아이-아-이-아이-이-아-저-어어어-어어-어어-어어 이이이이오-아-아아아-아아아아"]
-    await client.send_message(message.channel, bp[random.randrange(4)])
+    if len(args) > 1:
+        try:
+            await client.send_message(message.channel, bp[int(args[0]) % len(bp)])
+        except ValueError:
+            # Send random on error
+            await client.send_message(message.channel, bp[random.randrange(4)])
+    else:
+        await client.send_message(message.channel, bp[random.randrange(4)])
 
 @command("help")
 async def commHelp(message, args):
@@ -178,8 +185,9 @@ async def commHelp(message, args):
 #   End commands
 #
 
-async def sendErrorMessage(message, e):
-    await client.send_message(message.channel, "Something went wrong... <@%s> something went wrong! :sob:" % admins[0])
+async def sendErrorMessage(message, e, customText):
+    await client.send_message(message.channel, "Something went wrong... <@{0}> something went wrong! :sob: It looks like {1}"
+                              .format(admins[0], customText))
     # would be good to send the exception over to Salt in a private message
 
 async def logout():
@@ -200,16 +208,15 @@ def setup(config):
         memeTextLineCount += 1
         memeText.append(line)
     f.close()
-    global smugFaces, smugFolder, uploadFolder
-    smugFolder = config['smugfolder']
-    uploadFolder = config['uploadfolder']
+    global smugFaces, smugFolder, uploadFolder, reddit
+    reddit = praw.Reddit(user_agent=config['user_agent'], client_id=config['reddit_id'], client_secret=config['reddit_secret'])
+    smugFolder = config['smug_folder']
+    uploadFolder = config['upload_folder']
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
-    dbmanager.init(config['dbpath'], config['allowdbcreation'])
+    dbmanager.init(config['db_path'], config['allow_db_creation'])
     setupDatabase()
     commprocessor.prefix = config['prefix'] + " "
     logger.debug("Moebot setup end...")
 
-def run(token, userAgent):
-    global reddit
-    reddit = praw.Reddit(user_agent=userAgent)
+def run(token):
     client.run(token)

@@ -1,8 +1,8 @@
-smug/
 data/
-config/*
-!config/log.ini
+config/bot.ini
 log/
+diagrams/
+.vs/
 
 # Created by https://www.gitignore.io/api/windows,osx,linux,go,sass,python
 
