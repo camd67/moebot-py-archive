@@ -11,9 +11,10 @@ import json
 from os import path, listdir
 from os.path import isfile, join
 from PIL import Image
+import traceback
 
 client = discord.Client()
-admins = ["84394456941359104", "172495826264915968"]
+botAdmin = None
 mods = []
 commands = {}
 permittedChannels = []
@@ -34,11 +35,6 @@ def command(command_name):
     return decorate
 
 # Client events
-@client.event
-async def on_ready():
-    logger.debug('Logged in as:')
-    logger.debug(client.user.name)
-    logger.debug(client.user.id)
 
 @client.event
 async def on_message(message):
@@ -48,11 +44,11 @@ async def on_message(message):
             .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id))
         args = commprocessor.getArguments(message.content)
         if com in commands:
-            if com == "permit" or com == "ban" or dbmanager.isCommandPermitted(message.channel.id, com):
-                await client.send_typing(message.channel)
-                await commands[com](message, args)
-            else:
-                await client.send_message(message.channel, "\"{}\" isn't permitted in this channel".format(com))
+            #if com == "permit" or com == "ban" or dbmanager.isCommandPermitted(message.channel.id, com):
+            await client.send_typing(message.channel)
+            await commands[com](message, args)
+            #else:
+             #   await client.send_message(message.channel, "\"{}\" isn't permitted in this channel".format(com))
         else:
             await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
 #
@@ -181,13 +177,18 @@ async def commBrainpower(message, args):
 @command("help")
 async def commHelp(message, args):
     await client.send_message(message.channel, "Commands are `" + commprocessor.prefix + "` followed by one of the following: {}".format(list(commands.keys())))
+
 #
 #   End commands
 #
 
 async def sendErrorMessage(message, e, customText):
-    await client.send_message(message.channel, "Something went wrong... <@{0}> something went wrong! :sob: It looks like {1}"
-                              .format(admins[0], customText))
+    await asyncio.wait([
+        client.send_message(message.channel, "Something went wrong... <@{0}> something went wrong! :sob: It looks like {1}"
+                              .format(botAdmin.id, customText)),
+        client.send_message(botAdmin, "> Looks like there was an error in {0} with the message {1}. Here's the stack trace: {2}"
+                            .format(message.channel.name, customText, traceback.format_exc()))
+        ])
     # would be good to send the exception over to Salt in a private message
 
 async def logout():
@@ -197,10 +198,22 @@ async def logout():
 
 def setupDatabase():
     dbmanager.updateCommands(commands)
+    
+@client.event
+async def on_ready():
+    logger.debug('Logged in as: {0} - {1}'.format(client.user.name, client.user.id))
+    logger.debug("Downloading user/server information...")
+    await setupDiscordInformation()
+
+async def setupDiscordInformation():
+    global botAdmin
+    botAdmin = await client.get_user_info(configData["admin_id"])
+    logger.debug("Done downloading setup information")
 
 def setup(config):
     logger.debug("Moebot setup begin...")
-    # get lines for meme.txt
+    global configData
+    configData = config
     f = open(path.realpath("data/meme.txt"), "r", encoding="UTF-8")
     global memeTextLineCount
     global memeText
@@ -213,9 +226,11 @@ def setup(config):
     smugFolder = config['smug_folder']
     uploadFolder = config['upload_folder']
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
-    dbmanager.init(config['db_path'], config['allow_db_creation'])
-    setupDatabase()
+    # dbmanager.init(config['db_path'], config['allow_db_creation'])
+    # setupDatabase()
     commprocessor.prefix = config['prefix'] + " "
+    # Get all channels and process them
+    # Get all users and process them
     logger.debug("Moebot setup end...")
 
 def run(token):

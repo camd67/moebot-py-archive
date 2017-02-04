@@ -13,6 +13,7 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -31,6 +32,8 @@
     <Compile Include="tests\__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
+    <Content Include="config\bot.example.ini" />
     <Content Include="config\bot.ini" />
     <Content Include="config\log.ini" />
     <Content Include="data\meme.txt" />
@@ -536,7 +539,9 @@
     <Content Include="data\smug\98.png" />
     <Content Include="data\smug\99.png" />
     <Content Include="data\smug\desktop.ini" />
+    <Content Include="log\output.log" />
     <Content Include="log\output.txt" />
+    <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bot" />

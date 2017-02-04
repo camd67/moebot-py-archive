@@ -5,7 +5,7 @@ from os import path
 import datetime
 import logging
 import logging.config
-#import asyncio
+import asyncio
 
 def readConfig():
     output = {}
@@ -24,5 +24,5 @@ if __name__ == '__main__':
     config = readConfig()
     log.debug("=======================================")
     log.debug(" BEGIN LOG FILE FOR MOEBOT")
-    moebot.setup(config)
+    moebot.setup(config) 
     moebot.run(config["bot_token"])
