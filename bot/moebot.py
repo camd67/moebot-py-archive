@@ -18,7 +18,9 @@ botAdmin = None
 mods = []
 commands = {}
 permittedChannels = []
+imagesToProcess = []
 reddit = None
+allEmojis = []
 logger = logging.getLogger("moebot")
 memeText = []
 smugFaces = []
@@ -35,60 +37,60 @@ def command(command_name):
     return decorate
 
 # Client events
-
 @client.event
 async def on_message(message):
     if commprocessor.isCommand(message.content) and message.author.id != client.user.id:
         com = commprocessor.getCommandName(message.content)
-        logger.debug("Recieved command: \"{}\" from user {}/{} in channel {}/{}"
+        logger.info("Recieved command: \"{}\" from user {}/{} in channel {}/{}"
             .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id))
         args = commprocessor.getArguments(message.content)
         if com in commands:
-            #if com == "permit" or com == "ban" or dbmanager.isCommandPermitted(message.channel.id, com):
+            #if com == "permit" or com == "ban" or
+            #dbmanager.isCommandPermitted(message.channel.id, com):
             await client.send_typing(message.channel)
             await commands[com](message, args)
             #else:
-             #   await client.send_message(message.channel, "\"{}\" isn't permitted in this channel".format(com))
+             #   await client.send_message(message.channel, "\"{}\" isn't
+             #   permitted in this channel".format(com))
         else:
             await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
+
 #
 #   Begin commands
 #
-
 @command("ban")
 async def commBanCommand(message, args):
     # shouldn't ever be able to ban or permit the ban and permit commands
-    if args[0] != "ban" and  args[0] != "permit":
+    if args[0] != "ban" and args[0] != "permit":
         dbmanager.banCommand(message.channel.id, message.author.id, args[0])
         await client.send_message(message.channel, "Command \"{}\" has been banned from this channel!".format(args[0]))
 
 @command("permit")
 async def commPermitCommand(message, args):
     # shouldn't ever be able to ban or permit the ban and permit commands
-    if args[0] != "ban" and  args[0] != "permit":
+    if args[0] != "ban" and args[0] != "permit":
         dbmanager.permitCommand(message.channel.id, message.author.id, args[0])
         await client.send_message(message.channel, "Command \"{}\" has been permitted in this channel!".format(args[0]))
 
 @command("smug")
 async def commSmug(message, args):
     chosenSmug = random.randrange(len(smugFaces))
-    await client.send_file(message.channel, smugFolder + smugFaces[chosenSmug], filename="smug.png")
+    await sendImage(message, smugFolder + smugFaces[chosenSmug], "smug.png")
 
 @command("game")
 async def commGame(message, args):
     if message.author.id in admins:
         gameTitle = " ".join(args)
         game = discord.Game(name=gameTitle, url="", type=0)
-        await asyncio.wait([
-            client.change_status(game=game),
-            client.send_message(message.channel, "What kind of game is '{}'...?".format(gameTitle))
-            ])
+        await asyncio.wait([client.change_status(game=game),
+            client.send_message(message.channel, "What kind of game is '{}'...?".format(gameTitle))])
 
 @command("pasta")
 async def commPasta(message, args):
     await client.send_message(message.channel, memeText[random.randrange(memeTextLineCount)])
 
-# both of these should figure out a way to store results, then grab a random one from there
+# both of these should figure out a way to store results, then grab a random
+# one from there
 @command("danb")
 async def commRandomDan(message, args):
     numSubmissions = 50
@@ -114,7 +116,7 @@ async def commRandomDan(message, args):
     image = None
     try:
         image = urllib.request.urlopen(danbooruUrl + selected["file_url"])
-        await client.send_file(message.channel, io.BytesIO(image.read()), filename="danbooru.png")
+        await sendImage(message, io.BytesIO(image.read()), "danbooru.png")
     except Exception as e:
         logging.exception("Failed to download danbooru image")
         await sendErrorMessage(message, e, "I couldn't download from danbooru")
@@ -123,7 +125,7 @@ async def commRandomDan(message, args):
 @command("random")
 async def commRandomMoe(message, args):
     numSubmissions = 100
-    submissions = reddit.get_subreddit('awwnime').get_hot(limit=numSubmissions)
+    submissions = reddit.subreddit("awwnime").hot(limit=numSubmissions)
     index = random.randrange(numSubmissions)
     currIndex = 0
     for submission in submissions:
@@ -134,7 +136,7 @@ async def commRandomMoe(message, args):
             logger.debug("Downloading image from " + submission.url)
             try:
                 response = urllib.request.urlopen(submission.url)
-                await client.send_file(message.channel, io.BytesIO(response.read()), filename="moe.png", content=submission.title)
+                await sendImage(message, io.BytesIO(response.read()), filename="moe.png", content=submission.title)
             except Exception as e:
                 logging.exception("Failed to download reddit submission")
                 await sendErrorMessage(message, e, "I couldn't download the image...")
@@ -145,16 +147,16 @@ async def commRandomMoe(message, args):
 @command("count")
 async def commCount(message, args):
     counter = 0
-    tmp = await client.send_message(message.channel, 'Calculating messages...')
-    async for log in client.logs_from(message.channel, limit=100):
+    tmp = await client.send_message(message.channel, "Calculating messages...")
+    for log in client.logs_from(message.channel, limit=100):
         if log.author == message.author:
             counter += 1
-    await client.edit_message(tmp, 'You have {} messages.'.format(counter))
+    await client.edit_message(tmp, "You have {} messages.".format(counter))
 
 @command("sleep")
 async def commSleep(message, args):
     await asyncio.sleep(5)
-    await client.send_message(message.channel, 'Ah, that was a nice nap')
+    await client.send_message(message.channel, "Ah, that was a nice nap")
 
 @command("goodshit")
 async def commGoodshit(message, args):
@@ -178,18 +180,29 @@ async def commBrainpower(message, args):
 async def commHelp(message, args):
     await client.send_message(message.channel, "Commands are `" + commprocessor.prefix + "` followed by one of the following: {}".format(list(commands.keys())))
 
+    
+@command("break")
+async def commHelp(message, args):
+    try:
+        raise ArithmeticError("error break!")
+    except ArithmeticError as ex:
+        await sendErrorMessage(message, ex, "some custom text")
 #
 #   End commands
 #
 
-async def sendErrorMessage(message, e, customText):
-    await asyncio.wait([
-        client.send_message(message.channel, "Something went wrong... <@{0}> something went wrong! :sob: It looks like {1}"
-                              .format(botAdmin.id, customText)),
-        client.send_message(botAdmin, "> Looks like there was an error in {0} with the message {1}. Here's the stack trace: {2}"
-                            .format(message.channel.name, customText, traceback.format_exc()))
+async def sendImage(message, file, filename, content=""):
+    toReact = await client.send_file(message.channel, file, filename=filename, content=content)
+    await asyncio.wait([client.add_reaction(toReact, "👍"),
+        client.add_reaction(toReact, "👎"),
+        client.add_reaction(toReact, "🚫")
         ])
-    # would be good to send the exception over to Salt in a private message
+
+async def sendErrorMessage(message, e, customText):
+    await asyncio.wait([client.send_message(message.channel, "Something went wrong... <@{0}> something went wrong! :sob: It looks like {1}"
+                              .format(botAdmin.id, customText)),
+        client.send_message(botAdmin, "Looks like there was an error in {0} with the message {1}. Here's the stack trace: ```{2}```"
+                            .format(message.channel.name, customText, traceback.format_exc()))])
 
 async def logout():
     logger.debug("Logging out")
@@ -201,12 +214,13 @@ def setupDatabase():
     
 @client.event
 async def on_ready():
-    logger.debug('Logged in as: {0} - {1}'.format(client.user.name, client.user.id))
+    logger.info("Logged in as: {0} - {1}".format(client.user.name, client.user.id))
     logger.debug("Downloading user/server information...")
     await setupDiscordInformation()
+    logger.info("Moebot is ready to recieve commands")
 
 async def setupDiscordInformation():
-    global botAdmin
+    global botAdmin, allEmojis
     botAdmin = await client.get_user_info(configData["admin_id"])
     logger.debug("Done downloading setup information")
 
@@ -214,7 +228,7 @@ def setup(config):
     logger.debug("Moebot setup begin...")
     global configData
     configData = config
-    f = open(path.realpath("data/meme.txt"), "r", encoding="UTF-8")
+    f = open(path.realpath(config["meme_file"]), "r", encoding="UTF-8")
     global memeTextLineCount
     global memeText
     for line in f:
@@ -222,15 +236,13 @@ def setup(config):
         memeText.append(line)
     f.close()
     global smugFaces, smugFolder, uploadFolder, reddit
-    reddit = praw.Reddit(user_agent=config['user_agent'], client_id=config['reddit_id'], client_secret=config['reddit_secret'])
-    smugFolder = config['smug_folder']
-    uploadFolder = config['upload_folder']
+    reddit = praw.Reddit(user_agent=config["user_agent"], client_id=config["reddit_id"], client_secret=config["reddit_secret"])
+    smugFolder = config["smug_folder"]
+    uploadFolder = config["upload_folder"]
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
-    # dbmanager.init(config['db_path'], config['allow_db_creation'])
-    # setupDatabase()
-    commprocessor.prefix = config['prefix'] + " "
-    # Get all channels and process them
-    # Get all users and process them
+    #dbmanager.init(config["db_path"], config["allow_db_creation"])
+    #setupDatabase()
+    commprocessor.prefix = config["prefix"] + " "
     logger.debug("Moebot setup end...")
 
 def run(token):
