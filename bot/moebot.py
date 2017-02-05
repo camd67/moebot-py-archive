@@ -63,7 +63,7 @@ async def on_message(message):
 #
 @command("rules")
 async def commRules(message, args):
-    if len(args) >= 1 and args[0] == "read":
+    if len(args) >= 1 and args[0] == "read" and message.author.top_role.name == "@everyone":
         await asyncio.wait([
             client.send_message(message.channel, "Welcome to the server <@{}>!".format(message.author.id)),
             client.add_roles(message.author, serverRoleMember),
