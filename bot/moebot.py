@@ -94,7 +94,7 @@ async def commSmug(message, args):
 
 @command("game")
 async def commGame(message, args):
-    if message.author.id in admins:
+    if message.author.id == botAdmin.id:
         gameTitle = " ".join(args)
         game = discord.Game(name=gameTitle, url="", type=0)
         await asyncio.wait([client.change_status(game=game),
@@ -182,7 +182,7 @@ async def commBrainpower(message, args):
     bp = ["お－おおおおおおおおおお　ああえーあーあーいーあーうーおおーおおおおおおおおおおおおお　ああえーおーあーあーうーうーあー　ええーええーええーえええ　ああああえーあーえーいーえーあーじょーおおおーおおーおおーおお　ええええおーあーあああーああああ",
         "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA", "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA",
         "오-오오오오오오오오오오 아아아아이-아-아-아이-아-우 저-어어어어어어어어어어어어 아아이-오-아-아-우-우-아- 이-이이이-이이-이이이 아아아아이-아-이-아이-이-아-저-어어어-어어-어어-어어 이이이이오-아-아아아-아아아아"]
-    if len(args) > 1:
+    if len(args) >= 1:
         try:
             await client.send_message(message.channel, bp[int(args[0]) % len(bp)])
         except ValueError:
