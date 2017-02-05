@@ -28,6 +28,8 @@ smugFolder = None
 uploadFolder = None
 memeTextLineCount = 0
 
+serverRoleMember = None
+
 # Decorator for commands
 def command(command_name):
     def decorate(func):
@@ -41,14 +43,15 @@ def command(command_name):
 async def on_message(message):
     if commprocessor.isCommand(message.content) and message.author.id != client.user.id:
         com = commprocessor.getCommandName(message.content)
-        logger.info("Recieved command: \"{}\" from user {}/{} in channel {}/{}"
-            .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id))
         args = commprocessor.getArguments(message.content)
+        logger.info("Recieved command: \"{}\" from user {}/{} in channel {}/{} with params {}"
+            .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id, args))
         if com in commands:
             #if com == "permit" or com == "ban" or
             #dbmanager.isCommandPermitted(message.channel.id, com):
-            await client.send_typing(message.channel)
-            await commands[com](message, args)
+            await asyncio.wait([client.send_typing(message.channel),
+                                commands[com](message, args)
+                                ])
             #else:
              #   await client.send_message(message.channel, "\"{}\" isn't
              #   permitted in this channel".format(com))
@@ -58,6 +61,18 @@ async def on_message(message):
 #
 #   Begin commands
 #
+@command("rules")
+async def commRules(message, args):
+    if len(args) >= 1 and args[0] == "read":
+        await asyncio.wait([
+            client.send_message(message.channel, "Welcome to the server <@{}>!".format(message.author.id)),
+            client.add_roles(message.author, serverRoleMember),
+            client.delete_message(message)
+            ])
+    else:
+        await client.send_message(message.channel, "<@{}>, Make sure to read all the rules!".format(message.author.id))
+
+
 @command("ban")
 async def commBanCommand(message, args):
     # shouldn't ever be able to ban or permit the ban and permit commands
@@ -179,14 +194,6 @@ async def commBrainpower(message, args):
 @command("help")
 async def commHelp(message, args):
     await client.send_message(message.channel, "Commands are `" + commprocessor.prefix + "` followed by one of the following: {}".format(list(commands.keys())))
-
-    
-@command("break")
-async def commHelp(message, args):
-    try:
-        raise ArithmeticError("error break!")
-    except ArithmeticError as ex:
-        await sendErrorMessage(message, ex, "some custom text")
 #
 #   End commands
 #
@@ -222,10 +229,15 @@ async def on_ready():
 async def setupDiscordInformation():
     global botAdmin, allEmojis
     botAdmin = await client.get_user_info(configData["admin_id"])
+    global serverRoleMember
+    for server in client.servers:
+        for role in server.roles:
+            if role.name == "Member":
+                serverRoleMember = role
     logger.debug("Done downloading setup information")
 
 def setup(config):
-    logger.debug("Moebot setup begin...")
+    logger.debug("Moebot local setup begin...")
     global configData
     configData = config
     f = open(path.realpath(config["meme_file"]), "r", encoding="UTF-8")
@@ -243,7 +255,7 @@ def setup(config):
     #dbmanager.init(config["db_path"], config["allow_db_creation"])
     #setupDatabase()
     commprocessor.prefix = config["prefix"] + " "
-    logger.debug("Moebot setup end...")
+    logger.debug("Moebot local setup end...")
 
 def run(token):
     client.run(token)
