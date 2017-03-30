@@ -27,7 +27,6 @@ smugFaces = []
 smugFolder = None
 uploadFolder = None
 memeTextLineCount = 0
-
 serverRoleMember = None
 
 # Decorator for commands
@@ -45,13 +44,13 @@ async def on_message(message):
         com = commprocessor.getCommandName(message.content)
         args = commprocessor.getArguments(message.content)
         logger.info("Recieved command: \"{}\" from user {}/{} in channel {}/{} with params {}"
-            .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id, args))
+                    .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id, args))
         if com in commands:
             #if com == "permit" or com == "ban" or
             #dbmanager.isCommandPermitted(message.channel.id, com):
             await asyncio.wait([client.send_typing(message.channel),
                                 commands[com](message, args)
-                                ])
+                               ])
             #else:
              #   await client.send_message(message.channel, "\"{}\" isn't
              #   permitted in this channel".format(com))
@@ -137,10 +136,24 @@ async def commRandomDan(message, args):
         await sendErrorMessage(message, e, "I couldn't download from danbooru")
         return
 
+@command("irl")
+async def commRandomMoe(message, args):
+    await randomRedditImage(message, args, "anime_irl")
+
+
+@command("meme")
+async def commRandomMoe(message, args):
+    await randomRedditImage(message, args, "animemes")
+
+
 @command("random")
 async def commRandomMoe(message, args):
+    await randomRedditImage(message, args, "awwnime")
+
+# Helper function to grab a random image from the top 100 images of a given subreddit
+async def randomRedditImage(message, args, subreddit):
     numSubmissions = 100
-    submissions = reddit.subreddit("awwnime").hot(limit=numSubmissions)
+    submissions = reddit.subreddit(subreddit).hot(limit=numSubmissions)
     index = random.randrange(numSubmissions)
     currIndex = 0
     for submission in submissions:
@@ -151,13 +164,17 @@ async def commRandomMoe(message, args):
             logger.debug("Downloading image from " + submission.url)
             try:
                 response = urllib.request.urlopen(submission.url)
-                await sendImage(message, io.BytesIO(response.read()), filename="moe.png", content=submission.title)
+                if response.info().get_content_maintype() == "image":
+                    await sendImage(message, io.BytesIO(response.read()), filename=subreddit + ".png", content=submission.title)
+                else:
+                    index += 1
+                    continue
             except Exception as e:
                 logging.exception("Failed to download reddit submission")
                 await sendErrorMessage(message, e, "I couldn't download the image...")
                 return
             break
-        currIndex+= 1
+        currIndex += 1
 
 @command("count")
 async def commCount(message, args):
@@ -180,8 +197,8 @@ async def commGoodshit(message, args):
 @command("brainpower")
 async def commBrainpower(message, args):
     bp = ["お－おおおおおおおおおお　ああえーあーあーいーあーうーおおーおおおおおおおおおおおおお　ああえーおーあーあーうーうーあー　ええーええーええーえええ　ああああえーあーえーいーえーあーじょーおおおーおおーおおーおお　ええええおーあーあああーああああ",
-        "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA", "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA",
-        "오-오오오오오오오오오오 아아아아이-아-아-아이-아-우 저-어어어어어어어어어어어어 아아이-오-아-아-우-우-아- 이-이이이-이이-이이이 아아아아이-아-이-아이-이-아-저-어어어-어어-어어-어어 이이이이오-아-아아아-아아아아"]
+          "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA", "O-oooooooooo AAAAE-A-A-I-A-U-JO-oooooooooooo AAE-O-A-A-U-U-A-E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA",
+          "오-오오오오오오오오오오 아아아아이-아-아-아이-아-우 저-어어어어어어어어어어어어 아아이-오-아-아-우-우-아- 이-이이이-이이-이이이 아아아아이-아-이-아이-이-아-저-어어어-어어-어어-어어 이이이이오-아-아아아-아아아아"]
     if len(args) >= 1:
         try:
             await client.send_message(message.channel, bp[int(args[0]) % len(bp)])
@@ -190,6 +207,7 @@ async def commBrainpower(message, args):
             await client.send_message(message.channel, bp[random.randrange(4)])
     else:
         await client.send_message(message.channel, bp[random.randrange(4)])
+
 
 @command("help")
 async def commHelp(message, args):
@@ -208,8 +226,8 @@ async def sendImage(message, file, filename, content=""):
 async def sendErrorMessage(message, e, customText):
     await asyncio.wait([client.send_message(message.channel, "Something went wrong... <@{0}> something went wrong! :sob: It looks like {1}"
                               .format(botAdmin.id, customText)),
-        client.send_message(botAdmin, "Looks like there was an error in {0} with the message {1}. Here's the stack trace: ```{2}```"
-                            .format(message.channel.name, customText, traceback.format_exc()))])
+        client.send_message(botAdmin, "Looks like there was an error in {0} with the message ({1}). Here's the stack trace: ```{2}``` {3}/{4} typed: {5}"
+                            .format(message.channel.name, customText, traceback.format_exc(), message.author.name, message.author.id, message.content))])
 
 async def logout():
     logger.debug("Logging out")
@@ -218,7 +236,7 @@ async def logout():
 
 def setupDatabase():
     dbmanager.updateCommands(commands)
-    
+
 @client.event
 async def on_ready():
     logger.info("Logged in as: {0} - {1}".format(client.user.name, client.user.id))
