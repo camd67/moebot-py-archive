@@ -158,14 +158,15 @@ async def randomRedditImage(message, args, subreddit):
     currIndex = 0
     for submission in submissions:
         if currIndex == index:
-            if ".gif" in submission.url or "i.redd.it" in submission.url:
+            if ".gif" in submission.url or submission.spoiler:
                 index += 1
                 continue
-            logger.debug("Downloading image from " + submission.url)
             try:
                 response = urllib.request.urlopen(submission.url)
                 if response.info().get_content_maintype() == "image":
+                    logger.debug("Downloading data from post: {}/{}".format(submission.title, submission.url))
                     await sendImage(message, io.BytesIO(response.read()), filename=subreddit + ".png", content=submission.title)
+                    return
                 else:
                     index += 1
                     continue
@@ -175,6 +176,7 @@ async def randomRedditImage(message, args, subreddit):
                 return
             break
         currIndex += 1
+    await client.send_message(message.channel, "Sorry, I couldn't get any images. Salt's working on fixing it! Until then, try again.")
 
 @command("count")
 async def commCount(message, args):
