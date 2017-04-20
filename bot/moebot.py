@@ -28,6 +28,7 @@ smugFolder = None
 uploadFolder = None
 memeTextLineCount = 0
 serverRoleMember = None
+deletedChannel = 0
 
 # Decorator for commands
 def command(command_name):
@@ -56,6 +57,10 @@ async def on_message(message):
              #   permitted in this channel".format(com))
         else:
             await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
+@client.event
+async def on_message_delete(message):
+    await client.send_message(deletedChannel, "User {}/{} had their message ch:{}/id:{} deleted with content: `{}`"
+        .format(message.author.name, message.author.id, message.channel.name, message.id, message.content))
 
 #
 #   Begin commands
@@ -247,9 +252,10 @@ async def on_ready():
     logger.info("Moebot is ready to recieve commands")
 
 async def setupDiscordInformation():
-    global botAdmin, allEmojis
+    global botAdmin, allEmojis, deletedChannel, serverRoleMember
     botAdmin = await client.get_user_info(configData["admin_id"])
-    global serverRoleMember
+    deletedChannel = discord.utils.get(client.get_all_channels(), id=configData["deleted_channel"])
+    logger.info(deletedChannel.id)
     for server in client.servers:
         for role in server.roles:
             if role.name == "Member":
