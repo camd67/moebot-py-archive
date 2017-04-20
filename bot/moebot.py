@@ -110,6 +110,7 @@ async def commPasta(message, args):
 
 # both of these should figure out a way to store results, then grab a random
 # one from there
+@command("d")
 @command("danb")
 async def commRandomDan(message, args):
     numSubmissions = 50
@@ -150,7 +151,7 @@ async def commRandomMoe(message, args):
 async def commRandomMoe(message, args):
     await randomRedditImage(message, args, "animemes")
 
-
+@command("r")
 @command("random")
 async def commRandomMoe(message, args):
     await randomRedditImage(message, args, "awwnime")
