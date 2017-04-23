@@ -29,6 +29,8 @@ uploadFolder = None
 memeTextLineCount = 0
 serverRoleMember = None
 deletedChannel = 0
+deletedIgnoreServers = []
+deletedIgnoreChannels = []
 
 # Decorator for commands
 def command(command_name):
@@ -59,12 +61,53 @@ async def on_message(message):
             await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
 @client.event
 async def on_message_delete(message):
-    await client.send_message(deletedChannel, "User {}/{} had their message ch:{}/id:{} deleted with content: `{}`"
-        .format(message.author.name, message.author.id, message.channel.name, message.id, message.content))
+    if (message.author.id != client.user.id and
+            message.server.id not in deletedIgnoreServers and
+            message.channel.id not in deletedIgnoreChannels
+        ):
+        await client.send_message(deletedChannel, "User {}/{} had their message ch:{}/id:{} deleted with content: `{}`"
+            .format(message.author.name, message.author.id, message.channel.name, message.id, message.content))
 
 #
 #   Begin commands
 #
+@command("ignore")
+async def commIgnore(message, args):
+    if len(args) > 2:
+        await client.send_message(message.channel, "Incorrect usage, please supply <ignore type> followed by <ignore ID>")
+        return
+    if args[0] == "server":
+        if args[1] in deletedIgnoreServers:
+            await client.send_message(message.channel, "I'm already ignoring that server!")
+            return
+        deletedIgnoreServers.append(args[1])
+        await client.send_message(message.channel, "{} Added to the list of servers to ignore".format(args[1]))
+    elif args[0] == "channel":
+        if args[1] in deletedIgnoreChannels:
+            await client.send_message(message.channel, "I'm already ignoring that Channel!")
+            return
+        deletedIgnoreChannels.append(args[1])
+        await client.send_message(message.channel, "{} Added to the list of channels to ignore".format(args[1]))
+    else:
+        await client.send_message(message.channel, "Unknown argument {}".format(args[0]))
+
+@command("unignore")
+async def commUnignore(message, args):
+    if len(args) > 2:
+        await client.send_message(message.channel, "Incorrect usage, please supply <ignore type> followed by <ignore ID>")
+        return
+    try:
+        if args[0] == "server":
+            deletedIgnoreServers.remove(args[1])
+            await client.send_message(message.channel, "{} Removed from the list of servers to ignore".format(args[1]))
+        elif args[0] == "channel":
+            deletedIgnoreChannels.remove(args[1])
+            await client.send_message(message.channel, "{} Removed from the list of channels to ignore".format(args[1]))
+        else:
+            await client.send_message(message.channel, "Unknown argument {}".format(args[0]))
+    except ValueError:
+        await client.send_message(message.channel, "I'm not ignoring {}}...".format(args[1]))
+
 @command("rules")
 async def commRules(message, args):
     if len(args) >= 1 and args[0] == "read" and message.author.top_role.name == "@everyone":
