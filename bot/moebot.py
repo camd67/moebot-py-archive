@@ -73,6 +73,9 @@ async def on_message_delete(message):
 #
 @command("ignore")
 async def commIgnore(message, args):
+    if message.author.id != botAdmin:
+        await client.send_message(message.channel, "Ignore is an admin only command")
+        return
     if len(args) > 2:
         await client.send_message(message.channel, "Incorrect usage, please supply <ignore type> followed by <ignore ID>")
         return
@@ -93,6 +96,9 @@ async def commIgnore(message, args):
 
 @command("unignore")
 async def commUnignore(message, args):
+    if message.author.id != botAdmin:
+        await client.send_message(message.channel, "Unignore is an admin only command")
+        return
     if len(args) > 2:
         await client.send_message(message.channel, "Incorrect usage, please supply <ignore type> followed by <ignore ID>")
         return
@@ -122,6 +128,9 @@ async def commRules(message, args):
 
 @command("ban")
 async def commBanCommand(message, args):
+    if message.author.id != botAdmin:
+        await client.send_message(message.channel, "Ban is an admin only command")
+        return
     # shouldn't ever be able to ban or permit the ban and permit commands
     if args[0] != "ban" and args[0] != "permit":
         dbmanager.banCommand(message.channel.id, message.author.id, args[0])
@@ -129,6 +138,9 @@ async def commBanCommand(message, args):
 
 @command("permit")
 async def commPermitCommand(message, args):
+    if message.author.id != botAdmin:
+        await client.send_message(message.channel, "Permit is an admin only command")
+        return
     # shouldn't ever be able to ban or permit the ban and permit commands
     if args[0] != "ban" and args[0] != "permit":
         dbmanager.permitCommand(message.channel.id, message.author.id, args[0])
@@ -141,6 +153,9 @@ async def commSmug(message, args):
 
 @command("game")
 async def commGame(message, args):
+    if message.author.id != botAdmin:
+        await client.send_message(message.channel, "Game is an admin only command")
+        return
     if message.author.id == botAdmin.id:
         gameTitle = " ".join(args)
         game = discord.Game(name=gameTitle, url="", type=0)
