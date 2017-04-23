@@ -73,7 +73,7 @@ async def on_message_delete(message):
 #
 @command("ignore")
 async def commIgnore(message, args):
-    if message.author.id != botAdmin:
+    if message.author.id != botAdmin.id:
         await client.send_message(message.channel, "Ignore is an admin only command")
         return
     if len(args) > 2:
@@ -96,7 +96,7 @@ async def commIgnore(message, args):
 
 @command("unignore")
 async def commUnignore(message, args):
-    if message.author.id != botAdmin:
+    if message.author.id != botAdmin.id:
         await client.send_message(message.channel, "Unignore is an admin only command")
         return
     if len(args) > 2:
@@ -128,7 +128,7 @@ async def commRules(message, args):
 
 @command("ban")
 async def commBanCommand(message, args):
-    if message.author.id != botAdmin:
+    if message.author.id != botAdmin.id:
         await client.send_message(message.channel, "Ban is an admin only command")
         return
     # shouldn't ever be able to ban or permit the ban and permit commands
@@ -138,7 +138,7 @@ async def commBanCommand(message, args):
 
 @command("permit")
 async def commPermitCommand(message, args):
-    if message.author.id != botAdmin:
+    if message.author.id != botAdmin.id:
         await client.send_message(message.channel, "Permit is an admin only command")
         return
     # shouldn't ever be able to ban or permit the ban and permit commands
@@ -153,10 +153,9 @@ async def commSmug(message, args):
 
 @command("game")
 async def commGame(message, args):
-    if message.author.id != botAdmin:
+    if message.author.id != botAdmin.id:
         await client.send_message(message.channel, "Game is an admin only command")
-        return
-    if message.author.id == botAdmin.id:
+    else:
         gameTitle = " ".join(args)
         game = discord.Game(name=gameTitle, url="", type=0)
         await asyncio.wait([client.change_status(game=game),
