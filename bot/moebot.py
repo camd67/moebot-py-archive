@@ -272,16 +272,15 @@ async def commBrainpower(message, args):
 
 @command("pubg")
 async def commPubg(message, args):
-    if message.channel != 209527787956994050:
-        return
     if len(args) > 0 and args[0] == "map":
         await client.send_file(message.channel, configData["pubg_data_path"] + "Map.png", filename="map.png")
     else:
         val = random.random()
         for loc in pubgLocations:
             if loc.rate >= val:
-                desc = "You must go to {}!".format(loc.name)
+                desc = "You must go to #{}: {}!".format(loc.index, loc.name)
                 path = configData["pubg_data_path"] + loc.img_path
+                logger.debug("PUBG - Chosen: " + str(loc))
                 await client.send_file(message.channel, path, filename=loc.name + ".png", content=desc)
                 return
         logger.warn("Got to the end of pubg command with no location selected...")
@@ -351,7 +350,7 @@ def setup(config):
     pubgFile = open(config["pubg_data_path"] + "standard.txt", "r", encoding="UTF-8")
     for line in pubgFile:
         splitLine = line.split(":")
-        pubgLocations.append(random_location.RandomLocation(splitLine[0].strip(), splitLine[1], splitLine[2].strip()))
+        pubgLocations.append(random_location.RandomLocation(splitLine[0].strip(), splitLine[1], splitLine[2], splitLine[3].strip()))
     pubgLocations = sorted(pubgLocations, key=lambda x: x.rate)
     #dbmanager.init(config["db_path"], config["allow_db_creation"])
     #setupDatabase()
