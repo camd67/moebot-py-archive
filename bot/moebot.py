@@ -3,6 +3,7 @@ import discord
 import praw
 from bot import commprocessor
 from bot import dbmanager
+from bot import random_location
 import random
 import logging
 import urllib
@@ -14,6 +15,7 @@ from PIL import Image
 import traceback
 
 client = discord.Client()
+configData = None
 botAdmin = None
 mods = []
 commands = {}
@@ -31,6 +33,7 @@ serverRoleMember = None
 deletedChannel = 0
 deletedIgnoreServers = []
 deletedIgnoreChannels = []
+pubgLocations = []
 
 # Decorator for commands
 def command(command_name):
@@ -200,12 +203,12 @@ async def commRandomDan(message, args):
         return
 
 @command("irl")
-async def commRandomMoe(message, args):
+async def commRandomIrl(message, args):
     await randomRedditImage(message, args, "anime_irl")
 
 
 @command("meme")
-async def commRandomMoe(message, args):
+async def commRandomMeme(message, args):
     await randomRedditImage(message, args, "animemes")
 
 @command("r")
@@ -241,14 +244,7 @@ async def randomRedditImage(message, args, subreddit):
         currIndex += 1
     await client.send_message(message.channel, "Sorry, I couldn't get any images. Salt's working on fixing it! Until then, try again.")
 
-@command("count")
-async def commCount(message, args):
-    counter = 0
-    tmp = await client.send_message(message.channel, "Calculating messages...")
-    for log in client.logs_from(message.channel, limit=100):
-        if log.author == message.author:
-            counter += 1
-    await client.edit_message(tmp, "You have {} messages.".format(counter))
+
 
 @command("sleep")
 async def commSleep(message, args):
@@ -273,6 +269,22 @@ async def commBrainpower(message, args):
     else:
         await client.send_message(message.channel, bp[random.randrange(4)])
 
+
+@command("pubg")
+async def commPubg(message, args):
+    if message.channel != 209527787956994050:
+        return
+    if len(args) > 0 and args[0] == "map":
+        await client.send_file(message.channel, configData["pubg_data_path"] + "Map.png", filename="map.png")
+    else:
+        val = random.random()
+        for loc in pubgLocations:
+            if loc.rate >= val:
+                desc = "You must go to {}!".format(loc.name)
+                path = configData["pubg_data_path"] + loc.img_path
+                await client.send_file(message.channel, path, filename=loc.name + ".png", content=desc)
+                return
+        logger.warn("Got to the end of pubg command with no location selected...")
 
 @command("help")
 async def commHelp(message, args):
@@ -331,11 +343,16 @@ def setup(config):
         memeTextLineCount += 1
         memeText.append(line)
     f.close()
-    global smugFaces, smugFolder, uploadFolder, reddit
+    global smugFaces, smugFolder, uploadFolder, reddit, pubgLocations
     reddit = praw.Reddit(user_agent=config["user_agent"], client_id=config["reddit_id"], client_secret=config["reddit_secret"])
     smugFolder = config["smug_folder"]
     uploadFolder = config["upload_folder"]
     smugFaces = [f for f in listdir(smugFolder) if isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
+    pubgFile = open(config["pubg_data_path"] + "standard.txt", "r", encoding="UTF-8")
+    for line in pubgFile:
+        splitLine = line.split(":")
+        pubgLocations.append(random_location.RandomLocation(splitLine[0].strip(), splitLine[1], splitLine[2].strip()))
+    pubgLocations = sorted(pubgLocations, key=lambda x: x.rate)
     #dbmanager.init(config["db_path"], config["allow_db_creation"])
     #setupDatabase()
     commprocessor.prefix = config["prefix"] + " "

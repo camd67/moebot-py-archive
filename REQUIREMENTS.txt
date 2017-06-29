@@ -1,0 +1,3 @@
+discord.py>=0.167
+praw>=4.5
+pillow>=4.1.1
