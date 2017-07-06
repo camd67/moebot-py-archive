@@ -33,7 +33,12 @@ serverRoleMember = None
 deletedChannel = 0
 deletedIgnoreServers = []
 deletedIgnoreChannels = []
+approvedChannels = []
 pubgLocations = []
+pubg_emote_win = None
+pubg_emote_loss = None
+pubg_emote_5 = None
+pubg_emote_10 = None
 
 # Decorator for commands
 def command(command_name):
@@ -47,21 +52,30 @@ def command(command_name):
 @client.event
 async def on_message(message):
     if commprocessor.isCommand(message.content) and message.author.id != client.user.id:
-        com = commprocessor.getCommandName(message.content)
-        args = commprocessor.getArguments(message.content)
-        logger.info("Recieved command: \"{}\" from user {}/{} in channel {}/{} with params {}"
-                    .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id, args))
-        if com in commands:
-            #if com == "permit" or com == "ban" or
-            #dbmanager.isCommandPermitted(message.channel.id, com):
-            await asyncio.wait([client.send_typing(message.channel),
-                                commands[com](message, args)
-                               ])
-            #else:
-             #   await client.send_message(message.channel, "\"{}\" isn't
-             #   permitted in this channel".format(com))
+        # if the message isn't in a PM and isn't in an approved channel, delete and notify user
+        if message.server != None and message.channel.id not in approvedChannels:
+            await asyncio.wait([
+                client.send_message(message.author, "Hey there {}, just a heads up that MoeBot commands should be placed into an approved channel. Your command `{}` in channel `{}` was deleted. Please ask Salt or another admin about approved channels in your server. Typically these are channels such as `moebot`, `bot`, or `commands` but vary between servers."
+                                                    .format(message.author.name, message.content, message.channel.name)),
+                client.delete_message(message)
+            ])
         else:
-            await client.send_message(message.channel, "I don't recognize that command, \"{}\"...".format(com))
+            com = commprocessor.getCommandName(message.content)
+            args = commprocessor.getArguments(message.content)
+            logger.info("Recieved command: \"{}\" from user {}/{} in channel {}/{} with params {}"
+                        .format(com, message.author.name, message.author.id, message.channel.name, message.channel.id, args))
+            if com in commands:
+                #if com == "permit" or com == "ban" or
+                #dbmanager.isCommandPermitted(message.channel.id, com):
+                await asyncio.wait([client.send_typing(message.channel),
+                                    commands[com](message, args)
+                                ])
+                #else:
+                #   await client.send_message(message.channel, "\"{}\" isn't
+                #   permitted in this channel".format(com))
+            else:
+                await client.send_message(message.channel,
+                "I don't recognize that command, \"{}\"...".format(com))
 @client.event
 async def on_message_delete(message):
     if (message.author.id != client.user.id and
@@ -278,25 +292,37 @@ async def commPubg(message, args):
         val = random.random()
         for loc in pubgLocations:
             if loc.rate >= val:
-                desc = "You must go to #{}: {}!".format(loc.index, loc.name)
+                desc = "<@{}>: You must go to #{}: {}! Make sure to react with the match outcome.".format(message.author.id, loc.index, loc.name)
                 path = configData["pubg_data_path"] + loc.img_path
-                logger.debug("PUBG - Chosen: " + str(loc))
-                await client.send_file(message.channel, path, filename=loc.name + ".png", content=desc)
+                logger.debug("PUBG - {} Chosen: {}".format(val, str(loc)))
+                sent = await client.send_file(message.channel, path, filename=loc.name + ".png", content=desc)
+                await asyncio.wait([
+                    client.add_reaction(sent, pubg_emote_win),
+                    client.add_reaction(sent, pubg_emote_loss),
+                    client.add_reaction(sent, pubg_emote_5),
+                    client.add_reaction(sent, pubg_emote_10),
+                ])
                 return
         logger.warn("Got to the end of pubg command with no location selected...")
 
 @command("help")
 async def commHelp(message, args):
-    await client.send_message(message.channel, "Commands are `" + commprocessor.prefix + "` followed by one of the following: {}".format(list(commands.keys())))
+    reply = "Commands are `" + commprocessor.prefix + "` followed by one of the following: {}".format(list(commands.keys()))
+    if args[0] == "pubg":
+        reply = "Command `pubg`: Generate a random location to land at for the game PlayerUnknown's BattleGrounds. Your goal is to travel to that location at some point during the game. Use `pubg map` to display a map of every location"
+    elif args[0] == "danb" or args[0] == "d":
+        reply = "Command `danb` or `d`: Download a random image from danbooru.donmai.us, you must supply a tag to search for."
+    await client.send_message(message.channel, reply)
 #
 #   End commands
 #
 
 async def sendImage(message, file, filename, content=""):
     toReact = await client.send_file(message.channel, file, filename=filename, content=content)
-    await asyncio.wait([client.add_reaction(toReact, "👍"),
-        client.add_reaction(toReact, "👎"),
-        client.add_reaction(toReact, "🚫")
+    await asyncio.wait([
+            client.add_reaction(toReact, "👍"),
+            client.add_reaction(toReact, "👎"),
+            client.add_reaction(toReact, "🚫")
         ])
 
 async def sendErrorMessage(message, e, customText):
@@ -321,7 +347,7 @@ async def on_ready():
     logger.info("Moebot is ready to recieve commands")
 
 async def setupDiscordInformation():
-    global botAdmin, allEmojis, deletedChannel, serverRoleMember
+    global botAdmin, allEmojis, deletedChannel, serverRoleMember, pubg_emote_win, pubg_emote_loss, pubg_emote_10, pubg_emote_5
     botAdmin = await client.get_user_info(configData["admin_id"])
     deletedChannel = discord.utils.get(client.get_all_channels(), id=configData["deleted_channel"])
     logger.info(deletedChannel.id)
@@ -329,6 +355,12 @@ async def setupDiscordInformation():
         for role in server.roles:
             if role.name == "Member":
                 serverRoleMember = role
+    allEmojis = list(client.get_all_emojis())
+    # TODO: move this to a class, and also iterate once not 4 times...
+    pubg_emote_win = next((x for x in allEmojis if x.name == "pubg_win"), None)
+    pubg_emote_loss = next((x for x in allEmojis if x.name == "pubg_loss"), None)
+    pubg_emote_5 = next((x for x in allEmojis if x.name == "pubg_top5"), None)
+    pubg_emote_10 = next((x for x in allEmojis if x.name == "pubg_top10"), None)
     logger.debug("Done downloading setup information")
 
 def setup(config):
@@ -342,7 +374,7 @@ def setup(config):
         memeTextLineCount += 1
         memeText.append(line)
     f.close()
-    global smugFaces, smugFolder, uploadFolder, reddit, pubgLocations
+    global smugFaces, smugFolder, uploadFolder, reddit, pubgLocations, approvedChannels
     reddit = praw.Reddit(user_agent=config["user_agent"], client_id=config["reddit_id"], client_secret=config["reddit_secret"])
     smugFolder = config["smug_folder"]
     uploadFolder = config["upload_folder"]
@@ -352,6 +384,7 @@ def setup(config):
         splitLine = line.split(":")
         pubgLocations.append(random_location.RandomLocation(splitLine[0].strip(), splitLine[1], splitLine[2], splitLine[3].strip()))
     pubgLocations = sorted(pubgLocations, key=lambda x: x.rate)
+    approvedChannels = config["allow_channels"].split(",")
     #dbmanager.init(config["db_path"], config["allow_db_creation"])
     #setupDatabase()
     commprocessor.prefix = config["prefix"] + " "
