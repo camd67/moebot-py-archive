@@ -1,24 +1,21 @@
 import configparser
 from bot import moebot
-import sys
 from os import path
-import datetime
-import logging
 import logging.config
-import asyncio
 
-def readConfig():
+
+def read_config():
     output = {}
-    config = configparser.ConfigParser()
+    config_parser = configparser.ConfigParser()
     filepath = path.realpath("config/bot.ini")
-    config.read(filepath)
-    for key in config["settings"]:
-        output[key] = config["settings"][key]
+    config_parser.read(filepath)
+    for key in config_parser["settings"]:
+        output[key] = config_parser["settings"][key]
     return output
 
 
 if __name__ == '__main__':
-    config = readConfig()
+    config = read_config()
     logPath = path.realpath(config["log_config_path"])
     logging.config.fileConfig(logPath)
     log = logging.getLogger("root")
