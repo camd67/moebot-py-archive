@@ -3,7 +3,7 @@ import discord
 import praw
 from bot import commprocessor
 from bot import dbmanager
-from bot import random_location
+from bot import pubg
 import random
 import logging
 import urllib
@@ -33,11 +33,7 @@ deletedChannel = 0
 deletedIgnoreServers = []
 deletedIgnoreChannels = []
 approvedChannels = []
-pubg_locations = []
-pubg_emote_win = None
-pubg_emote_loss = None
-pubg_emote_5 = None
-pubg_emote_10 = None
+pubg_processor = None  # type: pubg.Pubg
 
 
 # Decorator for commands
@@ -82,14 +78,14 @@ async def on_message(message):
                                           "I don't recognize that command, \"{}\"...".format(com))
 
 
-@client.event
-async def on_message_delete(message):
-    if (message.author.id != client.user.id and
-            message.server.id not in deletedIgnoreServers and
-            message.channel.id not in deletedIgnoreChannels):
-        await client.send_message(deletedChannel, "User {}/{} had their message ch:{}/id:{} deleted with content: `{}`"
-                                  .format(message.author.name, message.author.id, message.channel.name, message.id,
-                                          message.content))
+# @client.event
+# async def on_message_delete(message):
+#     if (message.author.id != client.user.id and
+#             message.server.id not in deletedIgnoreServers and
+#             message.channel.id not in deletedIgnoreChannels):
+#         await client.send_message(deletedChannel, "User {}/{} had their message ch:{}/id:{} deleted with content: `{}`"
+#                                   .format(message.author.name, message.author.id, message.channel.name, message.id,
+#                                           message.content))
 
 
 #
@@ -203,8 +199,10 @@ async def comm_pasta(message, args):
 @command("d")
 @command("danb")
 async def comm_random_dan(message, args):
+    await client.send_message(message.channel, "Sorry, danborru search is currently not available till I can figure out how to talk to them again...")
+    return
     num_submissions = 50
-    danbooru_url = "https://danbooru.donmai.us"
+    danbooru_url = "https://safebooru.donmai.us"
     full_url = "{}/posts.json?limit={}&tags=rating:s+{}".format(danbooru_url, num_submissions, args[0])
     logger.debug("Downloading data from {}".format(full_url))
     try:
@@ -308,25 +306,7 @@ async def comm_brainpower(message, args):
 
 @command("pubg")
 async def comm_pubg(message, args):
-    if len(args) > 0 and args[0] == "map":
-        await client.send_file(message.channel, configData["pubg_data_path"] + "Map.png", filename="map.png")
-    else:
-        val = random.random()
-        for loc in pubg_locations:
-            if loc.rate >= val:
-                desc = "<@{}>: You must go to #{}: {}! Make sure to react with the match outcome.".format(
-                    message.author.id, loc.index, loc.name)
-                path = configData["pubg_data_path"] + loc.img_path
-                logger.debug("PUBG - {} Chosen: {}".format(val, str(loc)))
-                sent = await client.send_file(message.channel, path, filename=loc.name + ".png", content=desc)
-                await asyncio.wait([
-                    client.add_reaction(sent, pubg_emote_win),
-                    client.add_reaction(sent, pubg_emote_loss),
-                    client.add_reaction(sent, pubg_emote_5),
-                    client.add_reaction(sent, pubg_emote_10),
-                ])
-                return
-        logger.warn("Got to the end of pubg command with no location selected...")
+    await pubg_processor.process_message(message, args)
 
 
 @command("help")
@@ -382,7 +362,7 @@ async def on_ready():
 
 
 async def setup_discord_information():
-    global botAdmin, all_emojis, deletedChannel, serverRoleMember, pubg_emote_win, pubg_emote_loss, pubg_emote_10, pubg_emote_5
+    global botAdmin, all_emojis, deletedChannel, serverRoleMember, pubg_processor
     botAdmin = await client.get_user_info(configData["admin_id"])
     deletedChannel = discord.utils.get(client.get_all_channels(), id=configData["deleted_channel"])
     logger.info(deletedChannel.id)
@@ -390,12 +370,7 @@ async def setup_discord_information():
         for role in server.roles:
             if role.name == "Member":
                 serverRoleMember = role
-    all_emojis = list(client.get_all_emojis())
-    # TODO: move this to a class, and also iterate once not 4 times...
-    pubg_emote_win = next((x for x in all_emojis if x.name == "pubg_win"), None)
-    pubg_emote_loss = next((x for x in all_emojis if x.name == "pubg_loss"), None)
-    pubg_emote_5 = next((x for x in all_emojis if x.name == "pubg_top5"), None)
-    pubg_emote_10 = next((x for x in all_emojis if x.name == "pubg_top10"), None)
+    pubg_processor = pubg.Pubg(client, configData["pubg_data_path"])
     logger.debug("Done downloading setup information")
 
 
@@ -410,19 +385,13 @@ def setup(config):
         memeTextLineCount += 1
         memeText.append(line)
     f.close()
-    global smugFaces, smugFolder, uploadFolder, reddit, pubg_locations, approvedChannels
+    global smugFaces, smugFolder, uploadFolder, reddit, approvedChannels
     reddit = praw.Reddit(user_agent=config["user_agent"], client_id=config["reddit_id"],
                          client_secret=config["reddit_secret"])
     smugFolder = config["smug_folder"]
     uploadFolder = config["upload_folder"]
     smugFaces = [f for f in listdir(smugFolder) if
                  isfile(join(smugFolder, f)) and not f.endswith(".ini") and not f.endswith(".db")]
-    pubg_file = open(config["pubg_data_path"] + "standard.txt", "r", encoding="UTF-8")
-    for line in pubg_file:
-        split_line = line.split(":")
-        pubg_locations.append(
-            random_location.RandomLocation(split_line[0].strip(), split_line[1], split_line[2], split_line[3].strip()))
-    pubg_locations = sorted(pubg_locations, key=lambda x: x.rate)
     approvedChannels = config["allow_channels"].split(",")
     # dbmanager.init(config["db_path"], config["allow_db_creation"])
     # setupDatabase()
