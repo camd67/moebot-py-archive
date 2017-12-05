@@ -1,3 +1,5 @@
+# This repo has been archived! Please check out the new moebot at https://github.com/camd67/moebot
+
 # MoeBot
 A (new) new version of MoeBot
 
